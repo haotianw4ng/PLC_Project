@@ -64,18 +64,32 @@ public final class Lexer {
 
         // determine which method to call
 
+        Token result = null;
+
         if (peek("@|[A-Za-z]")) {
         //if (peek("@|[A-Za-z]","[A-Za-z0-9_-]*")) {
         //if (String.valueOf(chars.input.charAt(chars.index)).matches("@|[A-Za-z]")) {
-            Token result = lexIdentifier();
-            return result;
-        }
-        else if (peek("-|[0-9]")) {
-            Token result= lexNumber();
-            return result;
+            result = lexIdentifier();
         }
 
-        throw new UnsupportedOperationException(); //TODO
+        else if (peek("-|[0-9]")) {
+            result = lexNumber();
+        }
+
+        else if (peek("'")){
+            result = lexCharacter();
+        }
+
+        else if (peek("\"")){
+            result = lexString();
+        }
+
+        else {
+            result = lexOperator();
+        }
+        return result;
+
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     // for each lex method, while next token is same as existing, continue to peek.
@@ -163,19 +177,88 @@ public final class Lexer {
     }
 
     public Token lexCharacter() {
-        throw new UnsupportedOperationException(); //TODO
+        match("\'");
+
+        if (match("\\\\")){
+            if (match("[bnrt\'\"\\\\]")){
+                if (match("\'")) {
+                    return chars.emit(Token.Type.CHARACTER);
+                }
+            }
+            else{
+                throw new ParseException("Invalid escape", chars.index);
+            }
+        }
+
+        // Character literals cannot span multiple lines
+        if (match("[\n\r]")){
+            throw new ParseException("Character literals cannot span multiple lines", chars.index);
+        }
+
+        //The character cannot be a single quote ('), without being preceded by a backslash
+        if (!match("[^']"))
+        {
+            throw new ParseException("The character cannot be a single quote", chars.index);
+        }
+
+        // check if ends with a single quote
+        if (match("\'")) {
+            return chars.emit(Token.Type.CHARACTER);
+        }
+        else {
+            throw new ParseException("Not ending with a single quote", chars.index);
+        }
     }
 
     public Token lexString() {
-        throw new UnsupportedOperationException(); //TODO
+        match("\"");
+
+        while (match("[^\"]")){
+            if (match("[\n\r]")){
+                throw new ParseException("String literals cannot span multiple lines", chars.index);
+            }
+            if (match("\\\\")){
+                if (!match("[bnrt\'\"\\\\]")){
+                    throw new ParseException("Invalid escape", chars.index);
+                }
+                else {
+                    match("[bnrt\'\"\\\\]");
+                }
+            }
+        }
+
+        if (match("\"")){
+            return chars.emit(Token.Type.STRING);
+        }
+        else {
+            throw new ParseException("It is an unterminated string", chars.index);
+        }
     }
 
+
     public void lexEscape() {
-        throw new UnsupportedOperationException(); //TODO
+        match("\\\\");
+
+        if(!match("[bnrt\'\"\\\\]")) {
+            throw new ParseException ("Invalid escpae", chars.index);
+        }
     }
 
     public Token lexOperator() {
-        throw new UnsupportedOperationException(); //TODO
+        if (match("[!=]"))
+        {
+            if(match("="))
+            {
+                return chars.emit(Token.Type.OPERATOR);
+            }
+        }
+        if (match("[(&&)(||)]"))
+        {
+            return chars.emit(Token.Type.OPERATOR);
+        }
+
+        return chars.emit(Token.Type.OPERATOR);
+
     }
 
     /**

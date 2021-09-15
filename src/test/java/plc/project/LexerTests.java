@@ -54,6 +54,8 @@ public class LexerTests {
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
                 Arguments.of("Leading Decimal", ".5", false),
+
+                // additional test cases
                 Arguments.of("Negative Decimal Starting Zero", "-0.4", true),
                 Arguments.of("Decimal Starting Zero", "0.4", true)
         );
@@ -70,7 +72,23 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "\'c\'", true),
                 Arguments.of("Newline Escape", "\'\\n\'", true),
                 Arguments.of("Empty", "\'\'", false),
-                Arguments.of("Multiple", "\'abc\'", false)
+                Arguments.of("Multiple", "\'abc\'", false),
+
+
+
+                // additional test cases
+                Arguments.of("Unterminated", "\'\'\'", false),
+                Arguments.of("New line", "\'\n\'", false)
+
+
+                // new test cases
+                //Arguments.of("Alphabetic", "\'?\'", true),
+                //Arguments.of("Alphabetic", "\'\\\\\'", true)
+                //Arguments.of("Single Quote with a preceded backslash", "\'\\'\'", true),
+                //Arguments.of("Single Quote without a preceded backslash", "\'\'\'", false)
+
+
+
         );
     }
 
@@ -86,7 +104,12 @@ public class LexerTests {
                 Arguments.of("Alphabetic", "\"abc\"", true),
                 Arguments.of("Newline Escape", "\"Hello,\\nWorld\"", true),
                 Arguments.of("Unterminated", "\"unterminated", false),
-                Arguments.of("Invalid Escape", "\"invalid\\escape\"", false)
+                Arguments.of("Invalid Escape", "\"invalid\\escape\"", false),
+
+                // additional test cases
+                Arguments.of("Symbols", "\"!@#$%^&*()\"", true),
+                Arguments.of("Newline Unterminated", "\"unterminated\n\"", false)
+
         );
     }
 
