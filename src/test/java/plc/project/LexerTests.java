@@ -53,7 +53,9 @@ public class LexerTests {
                 Arguments.of("Multiple Digits", "123.456", true),
                 Arguments.of("Negative Decimal", "-1.0", true),
                 Arguments.of("Trailing Decimal", "1.", false),
-                Arguments.of("Leading Decimal", ".5", false)
+                Arguments.of("Leading Decimal", ".5", false),
+                Arguments.of("Negative Decimal Starting Zero", "-0.4", true),
+                Arguments.of("Decimal Starting Zero", "0.4", true)
         );
     }
 
