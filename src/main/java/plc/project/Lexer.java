@@ -30,17 +30,11 @@ public final class Lexer {
     public List<Token> lex() {
 
         List<Token> tokens = new ArrayList<Token>();
-
-        for (int i = 0; i < chars.input.length(); ++i) {
-            //if character is whitespace, skip
-            //else call lexToken()
-            if (String.valueOf(chars.input.charAt(i)).matches(" ")) {
-                chars.advance();
+        while (chars.has(0)) {
+            if (match(" ")) {
                 chars.skip();
             }
-            else if (chars.input.substring(i,i+2).matches("\\b|\\n|\\r|\\t")) {
-                chars.advance();
-                //chars.advance();
+            else if (match("\\b|\\n|\\r|\\t")) {
                 chars.skip();
             }
             else {
@@ -67,9 +61,11 @@ public final class Lexer {
         Token result = null;
 
         if (peek("@|[A-Za-z]")) {
+           // System.out.println("identifier");
         //if (peek("@|[A-Za-z]","[A-Za-z0-9_-]*")) {
         //if (String.valueOf(chars.input.charAt(chars.index)).matches("@|[A-Za-z]")) {
             result = lexIdentifier();
+            //System.out.println(result);
         }
 
         else if (peek("-|[0-9]")) {
@@ -87,6 +83,7 @@ public final class Lexer {
         else {
             result = lexOperator();
         }
+        System.out.println(result);
         return result;
 
         //throw new UnsupportedOperationException(); //TODO
@@ -247,16 +244,20 @@ public final class Lexer {
     public Token lexOperator() {
         if (match("[!=]"))
         {
+            System.out.println("= or !");
             if(match("="))
             {
                 return chars.emit(Token.Type.OPERATOR);
             }
+           // else {
+           //     return chars.emit(Token.Type.OPERATOR);
+           // }
         }
         if (match("[(&&)(||)]"))
         {
             return chars.emit(Token.Type.OPERATOR);
         }
-
+        chars.advance();
         return chars.emit(Token.Type.OPERATOR);
 
     }
