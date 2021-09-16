@@ -61,14 +61,10 @@ public final class Lexer {
         Token result = null;
 
         if (peek("@|[A-Za-z]")) {
-           // System.out.println("identifier");
-        //if (peek("@|[A-Za-z]","[A-Za-z0-9_-]*")) {
-        //if (String.valueOf(chars.input.charAt(chars.index)).matches("@|[A-Za-z]")) {
             result = lexIdentifier();
-            //System.out.println(result);
         }
 
-        else if (peek("-|[0-9]")) {
+        else if (peek("-","[0-9]") || peek("[0-9]")) {
             result = lexNumber();
         }
 
@@ -105,15 +101,6 @@ public final class Lexer {
     }
 
     public Token lexNumber() {
-        //match("[0-9]|-");
-
-        // Decimal case
-       // if (peek("-", "0", "\\.", "[0-9]")) {
-
-       // }
-
-        // case for 0.1241
-        List<String> pat = new ArrayList<String>();
 
         // negatives
         if (peek("-","0","\\.","[0-9]")) {
@@ -144,6 +131,8 @@ public final class Lexer {
             }
         }
         // non-negatives
+
+        // decimal case
         else if (peek("0","\\.","[0-9]")) {
             match("0","\\.","[0-9]");
             while (peek("[0-9]")) {
@@ -152,6 +141,7 @@ public final class Lexer {
             Token dec = chars.emit(Token.Type.DECIMAL);
             return dec;
         }
+        // non-zero integer case
         else if (peek("[1-9]")) {
             match("[1-9]");
             while (peek("[0-9]")) {
@@ -170,7 +160,9 @@ public final class Lexer {
                 return integer;
             }
         }
-        throw new UnsupportedOperationException(); //TODO
+        chars.advance();
+        return chars.emit(Token.Type.INTEGER);
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     public Token lexCharacter() {
