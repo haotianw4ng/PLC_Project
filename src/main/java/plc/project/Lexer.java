@@ -34,7 +34,7 @@ public final class Lexer {
             if (match(" ")) {
                 chars.skip();
             }
-            else if (match("\\b|\\n|\\r|\\t")) {
+            else if (match("[\b\n\r\t]")) {
                 chars.skip();
             }
             else {
