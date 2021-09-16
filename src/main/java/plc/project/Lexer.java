@@ -249,9 +249,9 @@ public final class Lexer {
             {
                 return chars.emit(Token.Type.OPERATOR);
             }
-           // else {
-           //     return chars.emit(Token.Type.OPERATOR);
-           // }
+            else {
+                return chars.emit(Token.Type.OPERATOR);
+            }
         }
         if (match("[(&&)(||)]"))
         {
