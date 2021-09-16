@@ -24,11 +24,16 @@ public class LexerTests {
                 Arguments.of("Alphanumeric", "thelegend27", true),
                 Arguments.of("Leading Hyphen", "-five", false),
                 Arguments.of("Leading Digit", "1fish2fish3fishbluefish", false),
+
+                // Additional test cases
                 Arguments.of("Legal Hyphen", "i-dentifier", true),
                 Arguments.of("Leading @", "@identifier", true),
                 Arguments.of("Leading Underscore", "_identifier", false),
                 Arguments.of("Legal Underscore", "i_dentifier", true),
-                Arguments.of("Illegal @", "i@dentifier", false)
+                Arguments.of("Illegal @", "i@dentifier", false),
+                Arguments.of("Single Character", "a", true),
+                Arguments.of("Hyphenated", "a-b-c", true),
+                Arguments.of("Underscores", "___", false)
         );
     }
 
@@ -44,10 +49,14 @@ public class LexerTests {
                 Arguments.of("Multiple Digits", "12345", true),
                 Arguments.of("Negative", "-1", true),
                 Arguments.of("Leading Zero", "01", false),
+
+                // Additional test cases
                 Arguments.of("Negative Multiple Digits", "-12345", true),
                 Arguments.of("Trailing Zeros", "1000", true),
                 Arguments.of("Illegal Characters", "10c0", false),
-                Arguments.of("Decimal", "1.0", false)
+                Arguments.of("Decimal", "1.0", false),
+                Arguments.of("Multi-Decimal", "123.456", false),
+                Arguments.of("Leading Zeros", "007", false)
         );
     }
 
@@ -69,6 +78,9 @@ public class LexerTests {
                 Arguments.of("Decimal Starting Zero", "0.4", true),
                 Arguments.of("Integer", "1000", false),
                 Arguments.of("Leading Zeros", "000.001", false),
+                Arguments.of("Single Digit", "1", false),
+                Arguments.of("Trailing Zeros", "7.000", true),
+                Arguments.of("Double Decimal", "1..0", false)
                 
         );
     }
@@ -98,9 +110,6 @@ public class LexerTests {
                 //Arguments.of("Alphabetic", "\'\\\\\'", true)
                 //Arguments.of("Single Quote with a preceded backslash", "\'\\'\'", true),
                 //Arguments.of("Single Quote without a preceded backslash", "\'\'\'", false)
-
-
-
         );
     }
 
