@@ -154,7 +154,8 @@ public final class Parser {
      * Parses the {@code expression} rule.
      */
     public Ast.Expression parseExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        return parseLogicalExpression();
+       // throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -175,14 +176,28 @@ public final class Parser {
      * Parses the {@code additive-expression} rule.
      */
     public Ast.Expression parseAdditiveExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression left = parseMultiplicativeExpression();
+        while (match("+") || match("-")) {
+            String op = tokens.get(-1).getLiteral();
+            Ast.Expression right = parseMultiplicativeExpression();
+            left = new Ast.Expression.Binary(op, left, right);
+        }
+        return left;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
      * Parses the {@code multiplicative-expression} rule.
      */
     public Ast.Expression parseMultiplicativeExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+       Ast.Expression left = parsePrimaryExpression();
+       while (match("*") || match("\\") || match("^")) {
+           String op = tokens.get(-1).getLiteral();
+           Ast.Expression right = parsePrimaryExpression();
+           left = new Ast.Expression.Binary(op, left, right);
+       }
+       return left;
+        // throw new UnsupportedOperationException(); //TODO
     }
 
     /**
