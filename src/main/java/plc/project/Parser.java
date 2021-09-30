@@ -1,6 +1,10 @@
 package plc.project;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The parser takes the sequence of tokens emitted by the lexer and turns that
@@ -21,6 +25,11 @@ public final class Parser {
 
     public Parser(List<Token> tokens) {
         this.tokens = new TokenStream(tokens);
+    }
+
+    public int getIndex() {
+        if (tokens.has(0)) return tokens.get(0).getIndex();
+        else return tokens.get(-1).getIndex() + tokens.get(-1).getLiteral().length();
     }
 
     /**
@@ -183,7 +192,101 @@ public final class Parser {
      * not strictly necessary.
      */
     public Ast.Expression parsePrimaryExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        if (peek("NIL")) {
+            match("NIL");
+            return new Ast.Expression.Literal(null);
+        } else if (peek("TRUE")) {
+            match("TRUE");
+            Boolean result = new Boolean("True");
+            return new Ast.Expression.Literal(result);
+        } else if (peek("FALSE")) {
+            match("FALSE");
+            Boolean result = new Boolean("FALSE");
+            return new Ast.Expression.Literal(result);
+        } else if (peek(Token.Type.INTEGER)) {
+            BigInteger result = new BigInteger(this.tokens.get(0).getLiteral());
+            match(Token.Type.INTEGER);
+            return new Ast.Expression.Literal(result);
+        } else if (peek(Token.Type.DECIMAL)) {
+            BigDecimal result = new BigDecimal(this.tokens.get(0).getLiteral());
+            match(Token.Type.DECIMAL);
+            return new Ast.Expression.Literal(result);
+        } else if (peek(Token.Type.CHARACTER)) {
+            String newToken = this.tokens.get(0).getLiteral().replace("'", "");
+            //String newToken = this.tokens.get(0).getLiteral().substring(1,this.tokens.get(0).getLiteral().length()-1);
+            //newToken = newToken.replace("\\n", "\n");
+            Character result = null;
+            switch (newToken) {
+                case "\\n": result = '\n';
+                    break;
+                case "\\t": result = '\t';
+                    break;
+                case "\\r": result = '\r';
+                    break;
+                case "\\b": result = '\b';
+                    break;
+                case "\\'": result = '\'';
+                    break;
+                case "\\\"": result= '\"';
+            }
+            result = new Character(result);
+            match(Token.Type.CHARACTER);
+            return new Ast.Expression.Literal(result);
+        } else if (peek(Token.Type.STRING)) {
+            String newToken = this.tokens.get(0).getLiteral().replace("\\\"", "\"");
+            newToken = newToken.replace("\\r", "\r");
+            newToken = newToken.replace("\\t", "\t");
+            newToken = newToken.replace("\\n", "\r");
+            newToken = newToken.replace("\\b", "\b");
+            newToken = newToken.replace("\\\"", "\"");
+            newToken = newToken.replace("\\\'", "\'");
+            newToken = newToken.replace("\\\\", "\\");
+            match(Token.Type.STRING);
+            return new Ast.Expression.Literal(newToken);
+        } else if (peek("(")) {
+            match("(");
+            Ast.Expression expr = parseExpression();
+            if (match(")")) {
+                return new Ast.Expression.Group(expr);
+            } else {
+                throw new ParseException("Error: no closing parentheses", getIndex());
+            }
+        } else if (peek(Token.Type.IDENTIFIER)) {
+            String token = this.tokens.get(0).getLiteral();
+            List<Ast.Expression> exprList = new ArrayList<>();
+            match(Token.Type.IDENTIFIER);
+            if (!peek("(")) {
+                if (!peek("[")) {
+                    return new Ast.Expression.Access(null,token);
+                }
+                else {
+                    match("[");
+                    Ast.Expression expr = parseExpression();
+                    if (!peek("]")) {
+                        throw new ParseException("Missing closing bracket", getIndex());
+                    } else {
+                        match("]");
+                        // what to do here
+                        return new Ast.Expression.Access(Optional.of(expr),token);
+                    }
+                }
+            }
+            else if (peek("(",")")) {
+                match("(", ")");
+            } else {
+                match("(");
+                Ast.Expression expr = parseExpression();
+                exprList.add(expr);
+                while (match(",")) {
+                    expr = parseExpression();
+                    exprList.add(expr);
+                }
+                if (!peek(")")) throw new ParseException("Missing closing parentheses", getIndex());
+                else match(")");
+            }
+            return new Ast.Expression.Function(token, exprList);
+        } else throw new UnsupportedOperationException(); //TODO
+
     }
 
     /**
