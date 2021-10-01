@@ -124,8 +124,8 @@ public final class Parser {
     }
 
     /**
-     * Parses a case or default statement block from the {@code switch} rule. 
-     * This method should only be called if the next tokens start the case or 
+     * Parses a case or default statement block from the {@code switch} rule.
+     * This method should only be called if the next tokens start the case or
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
@@ -162,14 +162,28 @@ public final class Parser {
      * Parses the {@code logical-expression} rule.
      */
     public Ast.Expression parseLogicalExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression left = parseComparisonExpression();
+        while (match("&&") || match("||")) {
+            String op = tokens.get(-1).getLiteral();
+            Ast.Expression right = parseComparisonExpression();
+            left = new Ast.Expression.Binary(op, left, right);
+        }
+        return left;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
      * Parses the {@code equality-expression} rule.
      */
     public Ast.Expression parseComparisonExpression() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression left = parseAdditiveExpression();
+        while (match("!=") || match("==") || match(">") || match("<")) {
+            String op = tokens.get(-1).getLiteral();
+            Ast.Expression right = parseAdditiveExpression();
+            left = new Ast.Expression.Binary(op, left, right);
+        }
+        return left;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -212,7 +226,7 @@ public final class Parser {
             return new Ast.Expression.Literal(null);
         } else if (peek("TRUE")) {
             match("TRUE");
-            Boolean result = new Boolean("True");
+            Boolean result = new Boolean("TRUE");
             return new Ast.Expression.Literal(result);
         } else if (peek("FALSE")) {
             match("FALSE");
@@ -227,10 +241,11 @@ public final class Parser {
             match(Token.Type.DECIMAL);
             return new Ast.Expression.Literal(result);
         } else if (peek(Token.Type.CHARACTER)) {
-            String newToken = this.tokens.get(0).getLiteral().replace("'", "");
+            String newToken = this.tokens.get(0).getLiteral().replace("\'", "");
             //String newToken = this.tokens.get(0).getLiteral().substring(1,this.tokens.get(0).getLiteral().length()-1);
             //newToken = newToken.replace("\\n", "\n");
-            Character result = null;
+            //System.out.println(newToken);
+            Character result = newToken.charAt(0);
             switch (newToken) {
                 case "\\n": result = '\n';
                     break;
@@ -248,10 +263,10 @@ public final class Parser {
             match(Token.Type.CHARACTER);
             return new Ast.Expression.Literal(result);
         } else if (peek(Token.Type.STRING)) {
-            String newToken = this.tokens.get(0).getLiteral().replace("\\\"", "\"");
+            String newToken = this.tokens.get(0).getLiteral().replace("\"", "");
             newToken = newToken.replace("\\r", "\r");
             newToken = newToken.replace("\\t", "\t");
-            newToken = newToken.replace("\\n", "\r");
+            newToken = newToken.replace("\\n", "\n");
             newToken = newToken.replace("\\b", "\b");
             newToken = newToken.replace("\\\"", "\"");
             newToken = newToken.replace("\\\'", "\'");
@@ -272,7 +287,7 @@ public final class Parser {
             match(Token.Type.IDENTIFIER);
             if (!peek("(")) {
                 if (!peek("[")) {
-                    return new Ast.Expression.Access(null,token);
+                    return new Ast.Expression.Access(Optional.empty(),token);
                 }
                 else {
                     match("[");
@@ -300,8 +315,8 @@ public final class Parser {
                 else match(")");
             }
             return new Ast.Expression.Function(token, exprList);
-        } else throw new UnsupportedOperationException(); //TODO
-
+        }
+        else throw new UnsupportedOperationException(); //TODO
     }
 
     /**
