@@ -93,7 +93,18 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression left = parseExpression();
+        if (match("=")){
+            Ast.Expression right = parseExpression();
+            if (match(";")) {
+                return new Ast.Statement.Assignment(left, right);
+            }
+            throw new ParseException("Missing semicolon", getIndex());
+        }
+        else if (match(";")){
+            return new Ast.Statement.Expression(left);
+        }
+        throw new ParseException("Missing semicolon", getIndex());
     }
 
     /**
