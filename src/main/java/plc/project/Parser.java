@@ -104,7 +104,7 @@ public final class Parser {
         else if (match(";")){
             return new Ast.Statement.Expression(left);
         }
-        throw new ParseException("Missing semicolon", getIndex());
+        throw new ParseException("Error", getIndex());
     }
 
     /**
@@ -176,6 +176,11 @@ public final class Parser {
         Ast.Expression left = parseComparisonExpression();
         while (match("&&") || match("||")) {
             String op = tokens.get(-1).getLiteral();
+
+            if (!tokens.has(0)){
+                throw new ParseException("Error", getIndex());
+            }
+
             Ast.Expression right = parseComparisonExpression();
             left = new Ast.Expression.Binary(op, left, right);
         }
@@ -190,6 +195,11 @@ public final class Parser {
         Ast.Expression left = parseAdditiveExpression();
         while (match("!=") || match("==") || match(">") || match("<")) {
             String op = tokens.get(-1).getLiteral();
+
+            if (!tokens.has(0)){
+                throw new ParseException("Error", getIndex());
+            }
+
             Ast.Expression right = parseAdditiveExpression();
             left = new Ast.Expression.Binary(op, left, right);
         }
@@ -204,6 +214,11 @@ public final class Parser {
         Ast.Expression left = parseMultiplicativeExpression();
         while (match("+") || match("-")) {
             String op = tokens.get(-1).getLiteral();
+
+            if (!tokens.has(0)){
+                throw new ParseException("Error", getIndex());
+            }
+
             Ast.Expression right = parseMultiplicativeExpression();
             left = new Ast.Expression.Binary(op, left, right);
         }
@@ -218,6 +233,11 @@ public final class Parser {
        Ast.Expression left = parsePrimaryExpression();
        while (match("*") || match("\\") || match("^")) {
            String op = tokens.get(-1).getLiteral();
+
+           if (!tokens.has(0)){
+               throw new ParseException("Error", getIndex());
+           }
+
            Ast.Expression right = parsePrimaryExpression();
            left = new Ast.Expression.Binary(op, left, right);
        }
@@ -327,7 +347,7 @@ public final class Parser {
             }
             return new Ast.Expression.Function(token, exprList);
         }
-        else throw new UnsupportedOperationException(); //TODO
+        throw new ParseException("Error", getIndex());
     }
 
     /**
