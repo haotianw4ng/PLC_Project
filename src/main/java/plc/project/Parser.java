@@ -36,7 +36,24 @@ public final class Parser {
      * Parses the {@code source} rule.
      */
     public Ast.Source parseSource() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        List<Ast.Function> functions = new ArrayList<>();
+        List<Ast.Global> globals = new ArrayList<>();
+
+        // Add globals
+        while (peek("VAL") || peek("VAR") || peek("LIST")) {
+            Ast.Global global = parseGlobal();
+            globals.add(global);
+        }
+        // Add functions
+        while (peek("FUN")) {
+            Ast.Function function = parseFunction();
+            functions.add(function);
+        }
+
+        return new Ast.Source(globals, functions);
+
+        //throw new UnsupportedOperationException(); //TODO
+
     }
 
     /**
@@ -44,6 +61,23 @@ public final class Parser {
      * next tokens start a field, aka {@code LET}.
      */
     public Ast.Global parseGlobal() throws ParseException {
+
+        while (peek("VAL") || peek("VAR") || peek("LIST")) {
+            Ast.Global result = null;
+            if (peek("LIST")) {
+                result = parseList();
+            } else if (peek("VAL")) {
+                result = parseImmutable();
+            } else {
+                result = parseMutable();
+            }
+            if (!match(";")) {
+                throw new ParseException("Missing closing semi-colon", getIndex());
+            } else {
+                match(";");
+                return result;
+            }
+        }
         throw new UnsupportedOperationException(); //TODO
     }
 
@@ -52,7 +86,23 @@ public final class Parser {
      * next token declares a list, aka {@code LIST}.
      */
     public Ast.Global parseList() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        String name = null;
+        List<Ast.Expression> exprList = new ArrayList<>();
+        match("LIST");
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("No identifier",getIndex());
+        name = tokens.get(-1).getLiteral();
+        if (!match("=")) throw new ParseException("No =", getIndex());
+        if (!match("[")) throw new ParseException("No [", getIndex());
+        Ast.Expression expr = parseExpression();
+        exprList.add(expr);
+        while (match(",")) {
+            expr = parseExpression();
+            exprList.add(expr);
+        }
+        if (!match("]")) throw new ParseException("Missing ]", getIndex());
+        return new Ast.Global(name, true, Optional.of(new Ast.Expression.PlcList(exprList)));
+
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -60,7 +110,18 @@ public final class Parser {
      * next token declares a mutable global variable, aka {@code VAR}.
      */
     public Ast.Global parseMutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        String name = null;
+        match("VAR");
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Not identifier", getIndex());
+        name = tokens.get(-1).getLiteral();
+        if (match("=")) {
+            Ast.Expression expr = parseExpression();
+            //return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), expr.toString())));
+            return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+        } else {
+            return new Ast.Global(name, true, Optional.empty());
+        }
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -68,7 +129,14 @@ public final class Parser {
      * next token declares an immutable global variable, aka {@code VAL}.
      */
     public Ast.Global parseImmutable() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        String name = null;
+        match("VAL");
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Not identifier", getIndex());
+        name = tokens.get(-1).getLiteral();
+        if (!match("=")) throw new ParseException("Missing initialization", getIndex());
+        Ast.Expression expr = parseExpression();
+        return new Ast.Global(name, false, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+       // throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -76,7 +144,26 @@ public final class Parser {
      * next tokens start a method, aka {@code DEF}.
      */
     public Ast.Function parseFunction() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        String name = null;
+        List<String> parameters = new ArrayList<>();
+        List<Ast.Statement> statements = null;
+        match("FUN");
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Missing identifier", getIndex());
+        name = tokens.get(-1).getLiteral();
+        if (!match("(")) throw new ParseException("Missing opening parentheses", getIndex());
+        if (match(Token.Type.IDENTIFIER)) {
+            parameters.add(tokens.get(-1).getLiteral());
+            while (match(",")) {
+                match(Token.Type.IDENTIFIER);
+                parameters.add(tokens.get(-1).getLiteral());
+            }
+        }
+        if (!match(")")) throw new ParseException("Missing closing parentheses", getIndex());
+        if (!match("DO")) throw new ParseException("Missing DO", getIndex());
+        statements = parseBlock();
+        if (!match("END")) throw new ParseException("Missing END", getIndex());
+        return new Ast.Function(name, parameters, statements);
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -84,7 +171,15 @@ public final class Parser {
      * preceding token indicates the opening a block.
      */
     public List<Ast.Statement> parseBlock() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        List<Ast.Statement> statements = new ArrayList<>();
+        Ast.Statement statement = parseStatement();
+        statements.add(statement);
+        while (match(";") || match("END")) {
+            statement = parseStatement();
+            statements.add(statement);
+        }
+        return statements;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
