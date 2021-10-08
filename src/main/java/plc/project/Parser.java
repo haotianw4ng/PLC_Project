@@ -188,6 +188,27 @@ public final class Parser {
      * statement, then it is an expression/assignment statement.
      */
     public Ast.Statement parseStatement() throws ParseException {
+        if (match("LET"))
+        {
+            return parseDeclarationStatement();
+        }
+        else if (match("SWITCH"))
+        {
+            return parseSwitchStatement();
+        }
+        else if (match("IF"))
+        {
+            return parseIfStatement();
+        }
+        else if (match("WHILE"))
+        {
+            return parseWhileStatement();
+        }
+        else if (match("RETURN"))
+        {
+            return parseReturnStatement();
+        }
+
         Ast.Expression left = parseExpression();
         if (match("=")){
             Ast.Expression right = parseExpression();
@@ -208,7 +229,28 @@ public final class Parser {
      * statement, aka {@code LET}.
      */
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        if (match(Token.Type.IDENTIFIER)) {
+            String identifier = tokens.get(-1).getLiteral();
+
+            if (match("=")) {
+                Ast.Expression val = parseExpression();
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(identifier, Optional.of(val));
+                }
+                else{
+                    throw new ParseException("Missing ending semicolon", getIndex());
+                }
+            } else {
+                if (match(";")) {
+                    return new Ast.Statement.Declaration(identifier, Optional.empty());
+                }
+                else{
+                    throw new ParseException("Missing ending semicolon", getIndex());
+                }
+            }
+        } else {
+            throw new ParseException("Missing identifier", getIndex());
+        }
     }
 
     /**
@@ -217,7 +259,35 @@ public final class Parser {
      * {@code IF}.
      */
     public Ast.Statement.If parseIfStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        if (match("DO")){
+            throw new ParseException("Missing expression", getIndex());
+        }
+
+        List<Ast.Statement> if_statement = new ArrayList<>();
+        List<Ast.Statement> else_statement = new ArrayList<>();
+        Ast.Expression expression_val = parseExpression();
+
+        if (!match("DO")){
+            throw new ParseException("Missing DO block", getIndex());
+        }
+
+        while (tokens.has(0) && !peek("END")){
+            if_statement.add(parseStatement());
+            if(match("ELSE"))
+            {
+                while (tokens.has(0) && !peek("END"))
+                {
+                    else_statement.add(parseStatement());
+                }
+            }
+        }
+
+        if (match("END")){
+            return new Ast.Statement.If(expression_val, if_statement, else_statement);
+        }
+        else {
+            throw new ParseException("Missing END", getIndex());
+        }
     }
 
     /**
@@ -226,6 +296,8 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
+        Ast.Expression expression_val = parseExpression();
+
         throw new UnsupportedOperationException(); //TODO
     }
 
@@ -235,6 +307,10 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
+        match("CASE");
+        Ast.Expression expression_val = parseExpression();
+
+
         throw new UnsupportedOperationException(); //TODO
     }
 
@@ -244,7 +320,27 @@ public final class Parser {
      * {@code WHILE}.
      */
     public Ast.Statement.While parseWhileStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        if (match("DO")){
+            throw new ParseException("Missing expression", getIndex());
+        }
+
+        List<Ast.Statement> statement_list = new ArrayList<>();
+        Ast.Expression expression_val = parseExpression();
+
+        if (!match("DO")){
+            throw new ParseException("Missing DO block", getIndex());
+        }
+
+        while (tokens.has(0) && !peek("END")){
+            statement_list.add(parseStatement());
+        }
+
+        if (match("END")){
+            return new Ast.Statement.While(expression_val, statement_list);
+        }
+        else {
+            throw new ParseException("Missing END", getIndex());
+        }
     }
 
     /**
@@ -253,7 +349,14 @@ public final class Parser {
      * {@code RETURN}.
      */
     public Ast.Statement.Return parseReturnStatement() throws ParseException {
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression expression_val = parseExpression();
+
+        if (match(";")) {
+            return new Ast.Statement.Return(expression_val);
+        }
+        else {
+            throw new ParseException("Missing ending semicolon",  getIndex());
+        }
     }
 
     /**
@@ -261,7 +364,6 @@ public final class Parser {
      */
     public Ast.Expression parseExpression() throws ParseException {
         return parseLogicalExpression();
-       // throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -280,7 +382,6 @@ public final class Parser {
             left = new Ast.Expression.Binary(op, left, right);
         }
         return left;
-        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -299,7 +400,6 @@ public final class Parser {
             left = new Ast.Expression.Binary(op, left, right);
         }
         return left;
-        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -318,7 +418,6 @@ public final class Parser {
             left = new Ast.Expression.Binary(op, left, right);
         }
         return left;
-        //throw new UnsupportedOperationException(); //TODO
     }
 
     /**
@@ -337,7 +436,6 @@ public final class Parser {
            left = new Ast.Expression.Binary(op, left, right);
        }
        return left;
-        // throw new UnsupportedOperationException(); //TODO
     }
 
     /**
