@@ -174,11 +174,13 @@ public final class Parser {
         List<Ast.Statement> statements = new ArrayList<>();
         Ast.Statement statement = parseStatement();
         statements.add(statement);
+        /**
         while (match(";") || match("END")) {
             statement = parseStatement();
             statements.add(statement);
-        }
+        }*/
         return statements;
+
         //throw new UnsupportedOperationException(); //TODO
     }
 
@@ -220,7 +222,7 @@ public final class Parser {
         else if (match(";")){
             return new Ast.Statement.Expression(left);
         }
-        throw new ParseException("Error", getIndex());
+        throw new ParseException("Error parsing statement", getIndex());
     }
 
     /**
