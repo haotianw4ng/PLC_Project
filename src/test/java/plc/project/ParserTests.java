@@ -286,7 +286,7 @@ final class ParserTests {
 
     private static Stream<Arguments> testSwitchStatement() {
         return Stream.of(
-/*
+
                 Arguments.of("Basic Switch",
                         Arrays.asList(
                                 //SWITCH expr DEFAULT stmt; END
@@ -298,10 +298,10 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "END", 26)
                         ),
                         new Ast.Statement.Switch(new Ast.Expression.Access(Optional.empty(), "expr"),
-                                Arrays.asList(new Ast.Statement.Case(Optional.of(new Ast.Expression.Access(Optional.empty(), "DEFAULT")),
+                                Arrays.asList(new Ast.Statement.Case(Optional.of(new Ast.Expression.Access(Optional.empty(), "")),
                                         Arrays.asList(new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt")))))
                         )
-                )*/
+                ),
 
                 Arguments.of("Empty Switch",
                         Arrays.asList(
@@ -311,10 +311,7 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "DEFAULT", 12),
                                 new Token(Token.Type.IDENTIFIER, "END", 20)
                         ),
-                        //null
-                        new Ast.Statement.Switch(new Ast.Expression.Access(Optional.empty(), "expr"),
-                                Arrays.asList(new Ast.Statement.Case(Optional.of(new Ast.Expression.Access(Optional.empty(), "DEFAULT")),
-                                        Arrays.asList())))
+                        null
                 )
 
 

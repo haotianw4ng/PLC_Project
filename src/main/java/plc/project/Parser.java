@@ -329,7 +329,7 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-        List<Ast.Statement> statement_list = new ArrayList<>();;
+        List<Ast.Statement> statement_list = new ArrayList<>();
 
         if (match("CASE"))
         {
@@ -347,7 +347,17 @@ public final class Parser {
 
         if (match("DEFAULT"))
         {
-            return new Ast.Statement.Case(Optional.empty(), statement_list);
+            if(peek("END"))
+            {
+                throw new ParseException("No block", getIndex());
+            }
+            else
+            {
+                while (tokens.has(0) && !peek("END")){
+                    statement_list.add(parseStatement());
+                }
+                return new Ast.Statement.Case(Optional.empty(), statement_list);
+            }
         }
 
         throw new ParseException("Errorrrr", getIndex());
