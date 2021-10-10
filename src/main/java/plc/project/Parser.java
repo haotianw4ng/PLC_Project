@@ -301,9 +301,26 @@ public final class Parser {
      * {@code SWITCH}.
      */
     public Ast.Statement.Switch parseSwitchStatement() throws ParseException {
-        Ast.Expression expression_val = parseExpression();
+        if(peek("CASE") || peek("DEFAULT")){
+            throw new ParseException("Missing expression", getIndex());
+        }
 
-        throw new UnsupportedOperationException(); //TODO
+        Ast.Expression expression_val = parseExpression();
+        List<Ast.Statement.Case> case_list = new ArrayList<>();
+
+        while (tokens.has(0) && !peek("END")){
+            if(peek("CASE")||peek("DEFAULT"))
+            {
+                case_list.add(parseCaseStatement());
+            }
+        }
+
+        if (match("END")){
+            return new Ast.Statement.Switch(expression_val, case_list);
+        }
+        else {
+            throw new ParseException("Missing END", getIndex());
+        }
     }
 
     /**
@@ -312,11 +329,28 @@ public final class Parser {
      * default block of a switch statement, aka {@code CASE} or {@code DEFAULT}.
      */
     public Ast.Statement.Case parseCaseStatement() throws ParseException {
-        match("CASE");
-        Ast.Expression expression_val = parseExpression();
+        List<Ast.Statement> statement_list = new ArrayList<>();;
 
+        if (match("CASE"))
+        {
+            Ast.Expression expression_val = parseExpression();
+            if (match(":")){
+                while (tokens.has(0) && !peek("END")){
+                    statement_list.add(parseStatement());
+                }
+                return new Ast.Statement.Case(Optional.of(expression_val), statement_list);
+            }
+            else{
+                throw new ParseException("Missing :", getIndex());
+            }
+        }
 
-        throw new UnsupportedOperationException(); //TODO
+        if (match("DEFAULT"))
+        {
+            return new Ast.Statement.Case(Optional.empty(), statement_list);
+        }
+
+        throw new ParseException("Errorrrr", getIndex());
     }
 
     /**
