@@ -174,11 +174,12 @@ public final class Parser {
         List<Ast.Statement> statements = new ArrayList<>();
         Ast.Statement statement = parseStatement();
         statements.add(statement);
-        /**
-        while (match(";") || match("END")) {
+
+
+        while (!peek("END")) {
             statement = parseStatement();
             statements.add(statement);
-        }*/
+        }
         return statements;
 
         //throw new UnsupportedOperationException(); //TODO
