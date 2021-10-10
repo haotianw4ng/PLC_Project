@@ -298,7 +298,7 @@ final class ParserTests {
                                 new Token(Token.Type.IDENTIFIER, "END", 26)
                         ),
                         new Ast.Statement.Switch(new Ast.Expression.Access(Optional.empty(), "expr"),
-                                Arrays.asList(new Ast.Statement.Case(Optional.of(new Ast.Expression.Access(Optional.empty(), "")),
+                                Arrays.asList(new Ast.Statement.Case(Optional.empty(),
                                         Arrays.asList(new Ast.Statement.Expression(new Ast.Expression.Access(Optional.empty(), "stmt")))))
                         )
                 ),
