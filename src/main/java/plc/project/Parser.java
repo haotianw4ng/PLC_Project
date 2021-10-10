@@ -117,7 +117,8 @@ public final class Parser {
         if (match("=")) {
             Ast.Expression expr = parseExpression();
             //return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), expr.toString())));
-            return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+            //return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+            return new Ast.Global(name, true, Optional.of(expr));
         } else {
             return new Ast.Global(name, true, Optional.empty());
         }
@@ -135,7 +136,8 @@ public final class Parser {
         name = tokens.get(-1).getLiteral();
         if (!match("=")) throw new ParseException("Missing initialization", getIndex());
         Ast.Expression expr = parseExpression();
-        return new Ast.Global(name, false, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+        //return new Ast.Global(name, false, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
+        return new Ast.Global(name, false, Optional.of(expr));
        // throw new UnsupportedOperationException(); //TODO
     }
 
