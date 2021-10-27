@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
@@ -45,7 +46,14 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException(); //TODO (in lecture)
+        // Provided in lecture
+        if (ast.getValue().isPresent()){
+            scope.defineVariable(ast.getName(), true, visit(ast.getValue().get()));
+        }
+        else {
+            scope.defineVariable(ast.getName(), true, Environment.NIL);
+        }
+        return Environment.NIL;
     }
 
     @Override
@@ -70,22 +78,36 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.While ast) {
-        throw new UnsupportedOperationException(); //TODO (in lecture)
+        // Provided in lecture
+        while (requireType(Boolean.class, visit(ast.getCondition()))){
+            try{
+                scope = new Scope(scope);
+                for (Ast.Statement stmt : ast.getStatements()){
+                    visit(stmt);
+                }
+            }finally {
+                scope = scope.getParent();
+            }
+        }
+        return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException(); //TODO
+        return visit(ast.getValue());
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if(ast.getLiteral() != null)
+            return Environment.create(ast.getLiteral());
+        else
+            return Environment.NIL;
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException(); //TODO
+        return visit(ast.getExpression());
     }
 
     @Override
