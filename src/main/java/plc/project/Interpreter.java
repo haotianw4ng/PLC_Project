@@ -26,12 +26,29 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Source ast) {
-        throw new UnsupportedOperationException(); //TODO
+        for (Ast.Global global : ast.getGlobals()) {
+            visit(global);
+        }
+        for (Ast.Function function : ast.getFunctions()) {
+            visit(function);
+        }
+        Environment.Function result = scope.lookupFunction("main", 0);
+        List<Environment.PlcObject> l = new ArrayList<>();
+        return result.invoke(l);
+
+
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Global ast) {
-        throw new UnsupportedOperationException(); //TODO
+        if (ast.getValue().isPresent()) {
+            scope.defineVariable(ast.getName(), ast.getMutable(), visit(ast.getValue().get()));
+        } else {
+            scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
+        }
+        return Environment.NIL;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
@@ -63,6 +80,15 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.If ast) {
+        while (requireType(Boolean.class, visit(ast.getCondition()))) {
+            try {
+                scope = new Scope(scope);
+                // for (Ast.)
+            }finally {
+
+            }
+        }
+
         throw new UnsupportedOperationException(); //TODO
     }
 
