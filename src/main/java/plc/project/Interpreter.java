@@ -87,10 +87,9 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.Declaration ast) {
         // Provided in lecture
-        if (ast.getValue().isPresent()){
+        if (ast.getValue().isPresent()) {
             scope.defineVariable(ast.getName(), true, visit(ast.getValue().get()));
-        }
-        else {
+        } else {
             scope.defineVariable(ast.getName(), true, Environment.NIL);
         }
         return Environment.NIL;
@@ -151,13 +150,13 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Statement.While ast) {
         // Provided in lecture
-        while (requireType(Boolean.class, visit(ast.getCondition()))){
-            try{
+        while (requireType(Boolean.class, visit(ast.getCondition()))) {
+            try {
                 scope = new Scope(scope);
-                for (Ast.Statement stmt : ast.getStatements()){
+                for (Ast.Statement stmt : ast.getStatements()) {
                     visit(stmt);
                 }
-            }finally {
+            } finally {
                 scope = scope.getParent();
             }
         }
@@ -171,7 +170,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Literal ast) {
-        if(ast.getLiteral() != null)
+        if (ast.getLiteral() != null)
             return Environment.create(ast.getLiteral());
         else
             return Environment.NIL;
@@ -184,13 +183,118 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException(); //TODO
+        String op = ast.getOperator();
+
+        if (op.equals("&&")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (requireType(Boolean.class, left) && left.getValue().equals(true)) {
+                if (requireType(Boolean.class, right) && right.getValue().equals(true)) {
+                    return Environment.create(true);
+                } else {
+                    return Environment.create(false);
+                }
+            } else {
+                return Environment.create(false);
+            }
+        }
+
+        else if (op.equals("||")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+
+            if (requireType(Boolean.class, left) && left.getValue().equals(true)) {
+                return Environment.create(true);
+            } else {
+                if (requireType(Boolean.class, visit(ast.getRight())) && visit(ast.getRight()).getValue().equals(true)) {
+                    return Environment.create(true);
+                } else {
+                    return Environment.create(false);
+                }
+            }
+        }
+
+        else if (op.equals("<")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+            return Environment.create(requireType(Comparable.class, left).compareTo(requireType(left.getValue().getClass(), right)) < 0);
+        }
+        else if (op.equals(">")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+            return Environment.create(requireType(Comparable.class, left).compareTo(requireType(left.getValue().getClass(), right)) > 0);
+        }
+        else if (op.equals("==")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+            return Environment.create(left.equals(right));
+        }
+        else if (op.equals("!=")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+            return Environment.create(!left.equals(right));
+        }
+        else if (op.equals("+")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (left.getValue() instanceof String || right.getValue() instanceof String) {
+                return Environment.create(left.getValue().toString() + right.getValue().toString());
+            }
+            else if (left.getValue() instanceof BigInteger) {
+                if (right.getValue() instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left.getValue()).add(requireType(BigInteger.class, right)));
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left.getValue() instanceof BigDecimal) {
+                if (right.getValue() instanceof BigDecimal) {
+                    return Environment.create(((BigDecimal) left.getValue()).add(requireType(BigDecimal.class, right)));
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+        }
+
+        else if (op.equals("/")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (right.getValue().equals(0)){
+                throw new RuntimeException("The denominator is zero");
+            }
+
+            if (left.getValue() instanceof BigInteger) {
+                if (right.getValue() instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left.getValue()).divide(requireType(BigInteger.class, right)));
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left.getValue() instanceof BigDecimal) {
+                if (right.getValue() instanceof BigDecimal) {
+                    BigDecimal result = ((BigDecimal) left.getValue()).divide((BigDecimal) right.getValue(), RoundingMode.HALF_EVEN);
+                    return Environment.create(result);
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+        }
+
+
+        throw new RuntimeException();
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException(); //TODO
+        return scope.lookupVariable(ast.getName()).getValue();
     }
+
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Function ast) {
