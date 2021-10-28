@@ -103,7 +103,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                 throw new UnsupportedOperationException();
             } else {
                 // if variable is a list
-                
+
 
                 // otherwise
             }
@@ -114,16 +114,28 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.If ast) {
-        while (requireType(Boolean.class, visit(ast.getCondition()))) {
+        if (requireType(Boolean.class, visit(ast.getCondition()))) {
             try {
                 scope = new Scope(scope);
-                // for (Ast.)
+                for (Ast.Statement statement : ast.getThenStatements()) {
+                    visit(statement);
+                }
             }finally {
-
+                scope = scope.getParent();
+            }
+        } else {
+            try {
+                scope = new Scope(scope);
+                for (Ast.Statement statement : ast.getElseStatements()) {
+                    visit(statement);
+                }
+            } finally {
+                scope = scope.getParent();
             }
         }
+        return Environment.NIL;
 
-        throw new UnsupportedOperationException(); //TODO
+       // throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
