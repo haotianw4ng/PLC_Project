@@ -53,12 +53,35 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
+        Scope temp = scope;
+        scope.defineFunction(ast.getName(), ast.getParameters().size(), args -> {
+            Scope before = temp;
+            scope = new Scope(temp);
+            int index = 0;
+            for (String s : ast.getParameters()) {
+                // how to determine whether parameter is mutable?
+                scope.defineVariable(s, false, args.get(index));
+                index++;
+            }
+            try {
+                ast.getStatements().forEach(this::visit);
+            } catch (Return returnExcept) {
+                return returnExcept.value;
+            }
+            finally {
+                scope = before;
+            }
+            return Environment.NIL;
+        });
+        return Environment.NIL;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Expression ast) {
-        throw new UnsupportedOperationException(); //TODO
+        visit(ast.getExpression());
+        return Environment.NIL;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
@@ -75,6 +98,17 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
+        if (ast.getReceiver() instanceof Ast.Expression.Access) {
+            if (!scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getMutable()) {
+                throw new UnsupportedOperationException();
+            } else {
+                // if variable is a list
+                
+
+                // otherwise
+            }
+
+        }
         throw new UnsupportedOperationException(); //TODO
     }
 
