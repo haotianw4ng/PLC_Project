@@ -342,6 +342,14 @@ final class InterpreterTests {
                         ),
                         true
                 ),
+                // 10 > 1
+                Arguments.of("Greater Than",
+                        new Ast.Expression.Binary(">",
+                                new Ast.Expression.Literal(BigInteger.TEN),
+                                new Ast.Expression.Literal(BigInteger.ONE)
+                        ),
+                        true
+                ),
                 // 1 == 10
                 Arguments.of("Equal",
                         new Ast.Expression.Binary("==",
@@ -349,6 +357,14 @@ final class InterpreterTests {
                                 new Ast.Expression.Literal(BigInteger.TEN)
                         ),
                         false
+                ),
+                // 1 != 10
+                Arguments.of("Not Equal",
+                        new Ast.Expression.Binary("!=",
+                                new Ast.Expression.Literal(BigInteger.ONE),
+                                new Ast.Expression.Literal(BigInteger.TEN)
+                        ),
+                        true
                 ),
                 // "a" + "b"
                 Arguments.of("Concatenation",
