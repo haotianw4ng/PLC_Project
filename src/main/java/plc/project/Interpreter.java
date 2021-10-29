@@ -104,48 +104,31 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             } else {
                 // if variable is a list, i.e. if has offset?
                 if (((Ast.Expression.Access) ast.getReceiver()).getOffset().isPresent()) {
-                    System.out.println("yes list");
-                    //(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue()
-                  //  scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(visit(ast.getValue()));
-                   // scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()
 
+                    List list = (List)(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue());
+
+                    Object off = Environment.create(visit(((Ast.Expression.Access) ast.getReceiver()).getOffset().get()).getValue()).getValue();
+                    BigInteger offset = (BigInteger) off;
+
+                    Object newValue = (visit(ast.getValue()).getValue());
+
+                    List<Object> newList = new ArrayList<>();
+                    int index = 0;
+                    for (Object elem : list) {
+                        if (offset.intValue() == index) {
+                            newList.add(newValue);
+                        } else {
+                            newList.add(elem);
+                        }
+                        index++;
+
+                    }
+                    scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(new Environment.PlcObject(scope, newList));
                 } else {
                    // visit(((Ast.Expression.Access)ast.getReceiver()).getName()).setValue(ast.getValue());
                     scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(visit(ast.getValue()));
 
                 }
-                System.out.println("Print");
-
-                System.out.println(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()));
-                System.out.println (scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue());// {
-                System.out.println(((Ast.Expression.Access) ast.getReceiver()).getOffset().get());
-                System.out.println(ast.getValue());
-                System.out.println(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue());
-                System.out.println("receiver");
-                System.out.println((Ast.Expression.Access) ast.getReceiver());
-                System.out.println("SCOPE");
-                System.out.println(scope);
-
-               // List<?> list = new ArrayList<>();
-                System.out.println("Class");
-                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()).getClass());
-                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue()).getClass());
-                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()) instanceof List);
-
-                //(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()).get(0);
-
-
-
-                System.out.println((Arrays.asList(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue())).get(0));
-
-                System.out.println(ast);
-
-
-                //}
-
-
-
-                // otherwise
             }
 
         }
@@ -344,6 +327,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             BigInteger y = (BigInteger) x;
 
             return Environment.create(value.get(y.intValue()));
+            //TODO change above from Environment.create to just make new PlcObject so scope isn't lost?
 
             //System.out.println(value.get(y.intValue()));
 /**
