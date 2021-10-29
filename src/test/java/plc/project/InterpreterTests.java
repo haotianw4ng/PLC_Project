@@ -382,6 +382,30 @@ final class InterpreterTests {
                         ),
                         BigInteger.valueOf(11)
                 ),
+                // 3 * 8
+                Arguments.of("BigInteger multiplication",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(BigInteger.valueOf(3)),
+                                new Ast.Expression.Literal(BigInteger.valueOf(8))
+                        ),
+                        BigInteger.valueOf(24)
+                ),
+                // 3.1 * 8.2
+                Arguments.of("BigDecimal multiplication",
+                        new Ast.Expression.Binary("*",
+                                new Ast.Expression.Literal(new BigDecimal("3.1")),
+                                new Ast.Expression.Literal(new BigDecimal("8.2"))
+                        ),
+                        new BigDecimal("25.42")
+                ),
+                // 3.1 - 8.2
+                Arguments.of("BigDecimal subtraction",
+                        new Ast.Expression.Binary("-",
+                                new Ast.Expression.Literal(new BigDecimal("3.1")),
+                                new Ast.Expression.Literal(new BigDecimal("8.2"))
+                        ),
+                        new BigDecimal("-5.1")
+                ),
                 // 1.2 / 3.4
                 Arguments.of("Division",
                         new Ast.Expression.Binary("/",
@@ -389,6 +413,14 @@ final class InterpreterTests {
                                 new Ast.Expression.Literal(new BigDecimal("3.4"))
                         ),
                         new BigDecimal("0.4")
+                ),
+                // 3 ^ 2
+                Arguments.of("Exponential",
+                        new Ast.Expression.Binary("^",
+                                new Ast.Expression.Literal(new BigDecimal(3.0)),
+                                new Ast.Expression.Literal(BigInteger.valueOf(2))
+                        ),
+                        (new BigDecimal("9"))
                 )
         );
     }

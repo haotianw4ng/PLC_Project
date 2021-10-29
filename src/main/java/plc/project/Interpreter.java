@@ -1,5 +1,5 @@
 package plc.project;
-
+import java.math.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -279,11 +279,53 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             }
         }
 
+        else if (op.equals("-")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (left.getValue() instanceof BigInteger) {
+                if (right.getValue() instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left.getValue()).subtract(requireType(BigInteger.class, right)));
+                } else {
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left.getValue() instanceof BigDecimal) {
+                if (right.getValue() instanceof BigDecimal) {
+                    return Environment.create(((BigDecimal) left.getValue()).subtract(requireType(BigDecimal.class, right)));
+                } else {
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+        }
+
+
+        else if (op.equals("*")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (left.getValue() instanceof BigInteger) {
+                if (right.getValue() instanceof BigInteger) {
+                    return Environment.create(((BigInteger) left.getValue()).multiply(requireType(BigInteger.class, right)));
+                } else {
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left.getValue() instanceof BigDecimal) {
+                if (right.getValue() instanceof BigDecimal) {
+                    return Environment.create(((BigDecimal) left.getValue()).multiply(requireType(BigDecimal.class, right)));
+                } else {
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+        }
+
+
         else if (op.equals("/")) {
             Environment.PlcObject left = visit(ast.getLeft());
             Environment.PlcObject right = visit(ast.getRight());
 
-            if (right.getValue().equals(0)){
+            if (right.getValue().equals(BigInteger.ZERO)){
                 throw new RuntimeException("The denominator is zero");
             }
 
@@ -304,6 +346,28 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                     throw new RuntimeException("RHS is not the same type as LHS");
                 }
             }
+        }
+
+        else if (op.equals("^")) {
+            Environment.PlcObject left = visit(ast.getLeft());
+            Environment.PlcObject right = visit(ast.getRight());
+
+            if (right.getValue() instanceof BigInteger) {
+                if (left.getValue() instanceof BigInteger) {
+                    //System.out.println(((BigInteger) left.getValue()).intValue());
+                    //System.out.println(((BigInteger) right.getValue()).intValue());
+                    return Environment.create(((BigInteger) left.getValue()).pow(((BigInteger) right.getValue()).intValue()));
+                }
+                else if (left.getValue() instanceof BigDecimal){
+                    //System.out.println(((BigDecimal) left.getValue()).doubleValue());
+                    //System.out.println(((BigInteger) right.getValue()).intValue());
+                    return Environment.create(((BigDecimal) left.getValue()).pow(((BigInteger) right.getValue()).intValue()));
+                }
+            }
+            else {
+                throw new RuntimeException("Exponent  is not a BigInteger");
+            }
+
         }
 
 
@@ -337,7 +401,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         return scope.lookupFunction(ast.getName(),ast.getArguments().size()).invoke(result);
     }
 
-    
+
     @Override
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
 
