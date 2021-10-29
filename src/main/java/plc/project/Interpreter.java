@@ -335,14 +335,20 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     @Override
     public Environment.PlcObject visit(Ast.Expression.Access ast) {
         if (ast.getOffset().isPresent()) {
-            System.out.println("yes");
-            System.out.println(ast.getOffset().get());
-            //if (ast.getOffset().get() instanceof BigInteger) {
-           //     System.out.println("yes");
-           // }
+            if (!(Environment.create(visit(ast.getOffset().get()).getValue()).getValue() instanceof BigInteger)) {
+                throw new RuntimeException("Offset not big integer");
+            }
+            List value = (List)(scope.lookupVariable(ast.getName()).getValue()).getValue();
 
+            Object x = Environment.create(visit(ast.getOffset().get()).getValue()).getValue();
 
-
+            BigInteger index = BigInteger.ZERO;
+            for (Object i : value) {
+                if (index == x) {
+                    return Environment.create(i);
+                }
+                index = index.add(BigInteger.ONE);
+            }
         }
         return scope.lookupVariable(ast.getName()).getValue();
     }
@@ -361,6 +367,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
         for (Ast.Expression elem : ast.getValues()) {
             result.add(visit(elem).getValue());
         }
+
         return Environment.create(result);
 
     }
