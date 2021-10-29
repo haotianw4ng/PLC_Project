@@ -345,6 +345,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             BigInteger index = BigInteger.ZERO;
             for (Object i : value) {
                 if (index == x) {
+                   // System.out.println(Environment.create(i));
                     return Environment.create(i);
                 }
                 index = index.add(BigInteger.ONE);
@@ -356,9 +357,15 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException(); //TODO
+        List<Environment.PlcObject> result = new ArrayList<>();
+
+        for (int i = 0; i < ast.getArguments().size(); i++) {
+            result.add(visit(ast.getArguments().get(i)));
+        }
+        return scope.lookupFunction(ast.getName(),ast.getArguments().size()).invoke(result);
     }
 
+    
     @Override
     public Environment.PlcObject visit(Ast.Expression.PlcList ast) {
 
