@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -99,16 +100,57 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
     public Environment.PlcObject visit(Ast.Statement.Assignment ast) {
         if (ast.getReceiver() instanceof Ast.Expression.Access) {
             if (!scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getMutable()) {
-                throw new UnsupportedOperationException();
+                throw new RuntimeException("Not mutable");
             } else {
-                // if variable is a list
+                // if variable is a list, i.e. if has offset?
+                if (((Ast.Expression.Access) ast.getReceiver()).getOffset().isPresent()) {
+                    System.out.println("yes list");
+                    //(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue()
+                  //  scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(visit(ast.getValue()));
+                   // scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()
+
+                } else {
+                   // visit(((Ast.Expression.Access)ast.getReceiver()).getName()).setValue(ast.getValue());
+                    scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(visit(ast.getValue()));
+
+                }
+                System.out.println("Print");
+
+                System.out.println(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()));
+                System.out.println (scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue());// {
+                System.out.println(((Ast.Expression.Access) ast.getReceiver()).getOffset().get());
+                System.out.println(ast.getValue());
+                System.out.println(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue());
+                System.out.println("receiver");
+                System.out.println((Ast.Expression.Access) ast.getReceiver());
+                System.out.println("SCOPE");
+                System.out.println(scope);
+
+               // List<?> list = new ArrayList<>();
+                System.out.println("Class");
+                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()).getClass());
+                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue()).getClass());
+                System.out.println((scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()) instanceof List);
+
+                //(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue()).get(0);
+
+
+
+                System.out.println((Arrays.asList(scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).getValue().getValue())).get(0));
+
+                System.out.println(ast);
+
+
+                //}
+
 
 
                 // otherwise
             }
 
         }
-        throw new UnsupportedOperationException(); //TODO
+        return Environment.NIL;
+        //throw new UnsupportedOperationException(); //TODO
     }
 
     @Override
@@ -165,7 +207,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Return ast) {
-        return visit(ast.getValue());
+        throw new Return(visit(ast.getValue()));
     }
 
     @Override
