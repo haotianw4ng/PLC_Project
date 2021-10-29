@@ -341,7 +341,12 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             List value = (List)(scope.lookupVariable(ast.getName()).getValue()).getValue();
 
             Object x = Environment.create(visit(ast.getOffset().get()).getValue()).getValue();
+            BigInteger y = (BigInteger) x;
 
+            return Environment.create(value.get(y.intValue()));
+
+            //System.out.println(value.get(y.intValue()));
+/**
             BigInteger index = BigInteger.ZERO;
             for (Object i : value) {
                 if (index == x) {
@@ -349,7 +354,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                     return Environment.create(i);
                 }
                 index = index.add(BigInteger.ONE);
-            }
+            }*/
         }
         return scope.lookupVariable(ast.getName()).getValue();
     }
