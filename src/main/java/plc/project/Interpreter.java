@@ -115,22 +115,17 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
                     List<Object> newList = new ArrayList<>();
                     int index = 0;
                     for (Object elem : list) {
-                        if (offset.intValue() == index) {
+                        if (offset.intValue() == index)
                             newList.add(newValue);
-                        } else {
+                        else
                             newList.add(elem);
-                        }
                         index++;
-
                     }
                     scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(new Environment.PlcObject(scope, newList));
                 } else {
-                   // visit(((Ast.Expression.Access)ast.getReceiver()).getName()).setValue(ast.getValue());
                     scope.lookupVariable(((Ast.Expression.Access) ast.getReceiver()).getName()).setValue(visit(ast.getValue()));
-
                 }
             }
-
         }
         return Environment.NIL;
         //throw new UnsupportedOperationException(); //TODO
@@ -326,19 +321,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             Object x = Environment.create(visit(ast.getOffset().get()).getValue()).getValue();
             BigInteger y = (BigInteger) x;
 
-            return Environment.create(value.get(y.intValue()));
-            //TODO change above from Environment.create to just make new PlcObject so scope isn't lost?
-
-            //System.out.println(value.get(y.intValue()));
-/**
-            BigInteger index = BigInteger.ZERO;
-            for (Object i : value) {
-                if (index == x) {
-                   // System.out.println(Environment.create(i));
-                    return Environment.create(i);
-                }
-                index = index.add(BigInteger.ONE);
-            }*/
+            return new Environment.PlcObject(scope, value.get(y.intValue()));
         }
         return scope.lookupVariable(ast.getName()).getValue();
     }
