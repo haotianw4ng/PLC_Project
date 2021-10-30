@@ -164,7 +164,7 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
             scope = new Scope(scope);
 
             for (Ast.Statement.Case cas : ast.getCases()) {
-                if (cas.getValue().isPresent() ) {
+                if (cas.getValue().isPresent() &&  (visit(cas.getValue().get()).getValue().equals(visit(ast.getCondition()).getValue()))) {
                     if_default = true;
                 }
             }
