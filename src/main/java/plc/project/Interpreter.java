@@ -159,14 +159,30 @@ public class Interpreter implements Ast.Visitor<Environment.PlcObject> {
 
     @Override
     public Environment.PlcObject visit(Ast.Statement.Switch ast) {
-
+        boolean if_default = false;
         try {
             scope = new Scope(scope);
 
             for (Ast.Statement.Case cas : ast.getCases()) {
+                if (cas.getValue().isPresent() ) {
+                    if_default = true;
+                }
+            }
 
-                if (cas.getValue().isPresent() && (visit(cas.getValue().get()).getValue().equals(visit(ast.getCondition()).getValue()))) {
-                    visit(cas);
+            if (if_default)
+            {
+                for (Ast.Statement.Case cas : ast.getCases()) {
+                    if (cas.getValue().isPresent() &&
+                            (visit(cas.getValue().get()).getValue().equals(visit(ast.getCondition()).getValue()))) {
+                        visit(cas);
+                    }
+                }
+            }else
+            {
+                for (Ast.Statement.Case cas : ast.getCases()) {
+                    if (!cas.getValue().isPresent()) {
+                        visit(cas);
+                    }
                 }
             }
         } finally {
