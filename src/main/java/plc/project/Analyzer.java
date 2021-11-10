@@ -26,12 +26,33 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        throw new UnsupportedOperationException();  // TODO
+
+        for (Ast.Global global: ast.getGlobals()) {
+            visit(global);
+        }
+       // boolean foundMain = false;
+        for (Ast.Function function: ast.getFunctions()) {
+            visit(function);
+           // if (function.getName().equals("main") && function.getParameters().size() == 0) {
+             //   foundMain = true;
+            //}
+
+        }
+        //if (!foundMain) throw new RuntimeException("no main with arity 0");
+        return null;
+        //throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
     public Void visit(Ast.Global ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if (ast.getValue().isPresent()) {
+            scope.defineVariable(ast.getName(), ast.getMutable(), Environment.create(ast.getValue().get()));
+        } else {
+            scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
+        }
+        return null;
+
+        //throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
