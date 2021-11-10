@@ -45,21 +45,26 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Global ast) {
-        if (ast.getValue().isPresent())
+        if (ast.getValue().isPresent()) {
             visit(ast.getValue().get());
+            // TODO Check if value is of subtype of global's type
+            if (ast.getVariable().getType() == Environment.Type.ANY) {
+            } else if (Environment.create(ast.getValue().get()).getType() == ast.getVariable().getType()){
+            } else if (ast.getVariable().getType() == Environment.Type.COMPARABLE) {
+                Environment.PlcObject temp = Environment.create(ast.getValue().get());
+                if (!((temp.getType() == Environment.Type.INTEGER) || (temp.getType() == Environment.Type.DECIMAL) || (temp.getType() == Environment.Type.CHARACTER) ||(temp.getType() == Environment.Type.STRING))) {
+                    throw new RuntimeException("variable mismatch");
+                }
+            } else {
+                //if (Environment.create(ast.getValue().get()).getType() != ast.getVariable().getType()) {
+                    throw new RuntimeException("variable mismatch");
+                //}
+            }
+        }
 
         scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
         ast.setVariable(new Environment.Variable(ast.getName(), ast.getMutable(), Environment.NIL));
 
-        // TODO Check if value is of subtype of global's type
-        if (ast.getValue().isPresent()) {
-            if (ast.getVariable().getType() == Environment.Type.ANY) {
-                return null;
-            } else if (ast.getVariable().getType() == Environment.Type.COMPARABLE) {
-                // subtype can be Integer, Decimal, Character, or String
-            } // if subtype and global type are same kind
-            // else throw new runtimeException
-        }
         return null;
 
         //throw new UnsupportedOperationException();  // TODO
@@ -67,6 +72,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
+
 
         throw new UnsupportedOperationException();  // TODO
     }
