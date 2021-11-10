@@ -81,7 +81,44 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        throw new UnsupportedOperationException();  // TODO
+
+        if (ast.getLiteral() instanceof Void)
+            ast.setType(new Environment.Type("Nil", "Void", scope));
+        else if (ast.getLiteral() instanceof Boolean)
+            ast.setType(new Environment.Type("Boolean", "boolean", scope));
+        else if (ast.getLiteral() instanceof Character)
+            ast.setType(new Environment.Type("Character", "char", scope));
+        else if (ast.getLiteral() instanceof String) {
+            ast.setType(new Environment.Type("String", "String", scope));
+        } else if (ast.getLiteral() instanceof BigInteger) {
+            if (((BigInteger)ast.getLiteral()).bitCount() > 32) {
+                throw new RuntimeException("too many bits!!!!!!");
+            }
+                ast.setType(new Environment.Type("Integer", "int", scope));
+        } else if (ast.getLiteral() instanceof BigDecimal) {
+            if (((BigDecimal)ast.getLiteral()).doubleValue() == Double.NEGATIVE_INFINITY ||  ((BigDecimal)ast.getLiteral()).doubleValue() == Double.POSITIVE_INFINITY) {
+                throw new RuntimeException("decimal too big :(");
+            }
+            ast.setType(new Environment.Type("Boolean", "boolean", scope));
+        }
+        return null;
+        /**
+        Environment.Type litType = ast.getType();
+        if (litType == Environment.Type.NIL || litType == Environment.Type.BOOLEAN || litType == Environment.Type.CHARACTER || litType == Environment.Type.STRING) {
+            return null;
+        } else if (litType == Environment.Type.INTEGER) {
+
+            if (((BigInteger)ast.getLiteral()).bitCount() > 32) {
+                throw new RuntimeException("too many bits!!!!!!");
+            }
+        } else if (litType == Environment.Type.DECIMAL) {
+            if (((BigDecimal)ast.getLiteral()).doubleValue() == Double.NEGATIVE_INFINITY ||  ((BigDecimal)ast.getLiteral()).doubleValue() == Double.POSITIVE_INFINITY) {
+                throw new RuntimeException("decimal too big :(");
+            }
+        }
+        return null;
+*/
+        //throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
