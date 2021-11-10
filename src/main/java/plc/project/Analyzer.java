@@ -45,11 +45,21 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Global ast) {
-        if (ast.getValue().isPresent()) {
+        if (ast.getValue().isPresent())
             visit(ast.getValue().get());
-        }
+
         scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
         ast.setVariable(new Environment.Variable(ast.getName(), ast.getMutable(), Environment.NIL));
+
+        // TODO Check if value is of subtype of global's type
+        if (ast.getValue().isPresent()) {
+            if (ast.getVariable().getType() == Environment.Type.ANY) {
+                return null;
+            } else if (ast.getVariable().getType() == Environment.Type.COMPARABLE) {
+                // subtype can be Integer, Decimal, Character, or String
+            } // if subtype and global type are same kind
+            // else throw new runtimeException
+        }
         return null;
 
         //throw new UnsupportedOperationException();  // TODO
