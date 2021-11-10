@@ -46,10 +46,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Global ast) {
         if (ast.getValue().isPresent()) {
-            scope.defineVariable(ast.getName(), ast.getMutable(), Environment.create(ast.getValue().get()));
-        } else {
-            scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
+            visit(ast.getValue().get());
         }
+        scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
+        ast.setVariable(new Environment.Variable(ast.getName(), ast.getMutable(), Environment.NIL));
         return null;
 
         //throw new UnsupportedOperationException();  // TODO
@@ -57,6 +57,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
+
         throw new UnsupportedOperationException();  // TODO
     }
 
