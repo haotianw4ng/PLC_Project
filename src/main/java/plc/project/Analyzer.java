@@ -2,6 +2,7 @@ package plc.project;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,18 +28,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Source ast) {
 
+        try {
+            Environment.Function func = scope.lookupFunction("main", 0);
+            requireAssignable(Environment.Type.INTEGER, func.getReturnType());
+        } catch (RuntimeException except) {
+            throw new RuntimeException("Main function incorrect");
+        }
+
         for (Ast.Global global: ast.getGlobals()) {
             visit(global);
         }
-       // boolean foundMain = false;
         for (Ast.Function function: ast.getFunctions()) {
             visit(function);
-           // if (function.getName().equals("main") && function.getParameters().size() == 0) {
-             //   foundMain = true;
-            //}
-
         }
-        //if (!foundMain) throw new RuntimeException("no main with arity 0");
+
         return null;
         //throw new UnsupportedOperationException();  // TODO
     }
@@ -47,6 +50,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Global ast) {
         if (ast.getValue().isPresent()) {
             visit(ast.getValue().get());
+
             // TODO Check if value is of subtype of global's type
             if (ast.getVariable().getType() == Environment.Type.ANY) {
             } else if (Environment.create(ast.getValue().get()).getType() == ast.getVariable().getType()){
@@ -62,9 +66,10 @@ public final class Analyzer implements Ast.Visitor<Void> {
             }
         }
 
-        scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
-        ast.setVariable(new Environment.Variable(ast.getName(), ast.getMutable(), Environment.NIL));
-
+       // scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
+        Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(),Environment.getType(ast.getTypeName()), ast.getMutable(), Environment.NIL);
+       // ast.setVariable(new Environment.Variable(ast.getName(), ast.getMutable(), Environment.NIL));
+        ast.setVariable(var);
         return null;
 
         //throw new UnsupportedOperationException();  // TODO
@@ -73,8 +78,27 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Function ast) {
 
+        List<Environment.Type> parameterTypes = new ArrayList<>();
+        for (int i = 0; i < ast.getParameterTypeNames().size(); ++i) {
+            parameterTypes.add(Environment.getType(ast.getParameterTypeNames().get(i)));
+        }
+        Environment.Type returnType = ast.getReturnTypeName().isPresent() ? Environment.getType(ast.getReturnTypeName().get()) : Environment.Type.NIL;
+        Environment.Function func = scope.defineFunction(ast.getName(), ast.getName(), parameterTypes, returnType, args-> Environment.NIL);
+        ast.setFunction(func);
 
-        throw new UnsupportedOperationException();  // TODO
+        // need to save parent scope in variable to restore after? or no
+        try {
+            Scope newScope = new Scope(scope);
+            ast.getStatements().forEach(this::visit);
+            //scope = newScope.getParent();
+        } finally {
+            scope = getScope();
+            return null;
+        }
+
+        //return null;
+
+        //throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
