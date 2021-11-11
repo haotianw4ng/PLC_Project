@@ -87,12 +87,16 @@ public final class Analyzer implements Ast.Visitor<Void> {
         ast.setFunction(func);
 
         // need to save parent scope in variable to restore after? or no
+        Scope newScope = new Scope(scope);
         try {
-            Scope newScope = new Scope(scope);
-            ast.getStatements().forEach(this::visit);
+            //Scope newScope = new Scope(scope);
+            for (Ast.Statement stmt : ast.getStatements()) {
+                visit(stmt);
+            }
+            //ast.getStatements().forEach(this::visit);
             //scope = newScope.getParent();
         } finally {
-            scope = getScope();
+            scope = newScope.getParent();
             return null;
         }
 
@@ -138,48 +142,41 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getValue());
+        try {
+            requireAssignable(function.getFunction().getReturnType(), ast.getValue().getType());
+
+        }catch (RuntimeException except) {
+            throw new RuntimeException("Cannot assign value to return type, mismatch");
+        }
+        return null;
+        //throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
 
         if (ast.getLiteral() instanceof Void)
-            ast.setType(new Environment.Type("Nil", "Void", scope));
+            ast.setType(Environment.Type.NIL);
         else if (ast.getLiteral() instanceof Boolean)
-            ast.setType(new Environment.Type("Boolean", "boolean", scope));
+            ast.setType(Environment.Type.BOOLEAN);
         else if (ast.getLiteral() instanceof Character)
-            ast.setType(new Environment.Type("Character", "char", scope));
+            ast.setType(Environment.Type.CHARACTER);
         else if (ast.getLiteral() instanceof String) {
-            ast.setType(new Environment.Type("String", "String", scope));
+            ast.setType(Environment.Type.STRING);
         } else if (ast.getLiteral() instanceof BigInteger) {
             if (((BigInteger)ast.getLiteral()).bitCount() > 32) {
                 throw new RuntimeException("too many bits!!!!!!");
             }
-                ast.setType(new Environment.Type("Integer", "int", scope));
+            ast.setType(Environment.Type.INTEGER);
         } else if (ast.getLiteral() instanceof BigDecimal) {
             if (((BigDecimal)ast.getLiteral()).doubleValue() == Double.NEGATIVE_INFINITY ||  ((BigDecimal)ast.getLiteral()).doubleValue() == Double.POSITIVE_INFINITY) {
                 throw new RuntimeException("decimal too big :(");
             }
-            ast.setType(new Environment.Type("Boolean", "boolean", scope));
+            ast.setType(Environment.Type.DECIMAL);
         }
         return null;
-        /**
-        Environment.Type litType = ast.getType();
-        if (litType == Environment.Type.NIL || litType == Environment.Type.BOOLEAN || litType == Environment.Type.CHARACTER || litType == Environment.Type.STRING) {
-            return null;
-        } else if (litType == Environment.Type.INTEGER) {
-
-            if (((BigInteger)ast.getLiteral()).bitCount() > 32) {
-                throw new RuntimeException("too many bits!!!!!!");
-            }
-        } else if (litType == Environment.Type.DECIMAL) {
-            if (((BigDecimal)ast.getLiteral()).doubleValue() == Double.NEGATIVE_INFINITY ||  ((BigDecimal)ast.getLiteral()).doubleValue() == Double.POSITIVE_INFINITY) {
-                throw new RuntimeException("decimal too big :(");
-            }
-        }
-        return null;
-*/
+        
         //throw new UnsupportedOperationException();  // TODO
     }
 
