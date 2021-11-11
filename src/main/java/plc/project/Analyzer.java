@@ -176,7 +176,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
             ast.setType(Environment.Type.DECIMAL);
         }
         return null;
-        
+
         //throw new UnsupportedOperationException();  // TODO
     }
 
@@ -206,7 +206,15 @@ public final class Analyzer implements Ast.Visitor<Void> {
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
-        throw new UnsupportedOperationException();  // TODO
+        if (target == Environment.Type.ANY) {
+        } else if (target == Environment.Type.COMPARABLE) {
+            if (!(type == Environment.Type.INTEGER || type == Environment.Type.DECIMAL || type == Environment.Type.CHARACTER || type == Environment.Type.STRING)) {
+                throw new RuntimeException("Cannot assign target to type provided");
+            }
+        } else if (target == type) {
+        } else {
+            throw new RuntimeException("Cannot assign");
+        }
     }
 
 }
