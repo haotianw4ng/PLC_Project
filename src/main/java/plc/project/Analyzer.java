@@ -202,7 +202,74 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();  // TODO
+        String op = ast.getOperator();
+        visit(ast.getLeft());
+        visit(ast.getRight());
+        Environment.Type left = ast.getLeft().getType();
+        Environment.Type right = ast.getRight().getType();
+
+        if (op.equals("&&") || op.equals("||")) {
+            requireAssignable(Environment.Type.BOOLEAN,left);
+            requireAssignable(Environment.Type.BOOLEAN,right);
+            ast.setType(Environment.Type.BOOLEAN);
+        }
+
+        else if (op.equals("<") || op.equals(">") ||op.equals("==") || op.equals("!=")) {
+            requireAssignable(left, right);
+            requireAssignable(Environment.Type.COMPARABLE, left);
+            requireAssignable(Environment.Type.COMPARABLE, right);
+            ast.setType(Environment.Type.BOOLEAN);
+        }
+
+        else if (op.equals("+")) {
+            if (left == Environment.Type.STRING || right == Environment.Type.STRING) {
+                ast.setType(Environment.Type.STRING);;
+            }
+            else if (left == Environment.Type.INTEGER ){
+                if (right == Environment.Type.INTEGER){
+                    ast.setType(Environment.Type.INTEGER);
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left == Environment.Type.DECIMAL ){
+                if (right == Environment.Type.DECIMAL){
+                    ast.setType(Environment.Type.DECIMAL);
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else{
+                throw new RuntimeException("Not supported '+' operation");
+            }
+        }
+
+        else if (op.equals("*") || op.equals("-") || op.equals("/")) {
+            if ((left == Environment.Type.INTEGER || left == Environment.Type.DECIMAL) && right == left) {
+                ast.setType(left);
+            }
+            else{
+                throw new RuntimeException("The LHS must be an Integer/Decimal, " +
+                        "and the RHS needs to be the same as the LHS.");
+            }
+        }
+
+        else if (op.equals("^")) {
+            if (left == Environment.Type.INTEGER || left == Environment.Type.DECIMAL) {
+                if (right == Environment.Type.INTEGER){
+                    ast.setType(Environment.Type.STRING);
+                }
+                else{
+                    throw new RuntimeException("The RHS must be an Integer");
+                }
+            }
+            else{
+                throw new RuntimeException("The LHS must be either an Integer or a Decimal");
+            }
+        }
+        return null;
     }
 
     @Override
