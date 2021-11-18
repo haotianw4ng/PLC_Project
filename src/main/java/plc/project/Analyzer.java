@@ -107,7 +107,11 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Expression ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getExpression());
+        if(ast.getExpression().getClass() != Ast.Expression.Function.class){
+            throw new RuntimeException("The expression is not an Ast.Expression.Function");
+        }
+        return null;
     }
 
     @Override
@@ -137,7 +141,17 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getCondition());
+        try{
+            requireAssignable(Environment.Type.BOOLEAN,ast.getCondition().getType());
+            scope = new Scope(scope);
+            for (Ast.Statement statements : ast.getStatements()) {
+                visit(statements);
+            }
+        }catch (RuntimeException except) {
+            throw new RuntimeException(except);
+        }
+        return null;
     }
 
     @Override
@@ -182,17 +196,96 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Group ast) {
-        throw new UnsupportedOperationException();  // TODO
+        visit(ast.getExpression());
+        if(ast.getExpression() instanceof Ast.Expression.Binary) {
+            ast.setType(ast.getExpression().getType());
+            return null;
+        }
+        throw new RuntimeException("The contained expression is not a binary expression");
     }
 
     @Override
     public Void visit(Ast.Expression.Binary ast) {
-        throw new UnsupportedOperationException();  // TODO
+        String op = ast.getOperator();
+        visit(ast.getLeft());
+        visit(ast.getRight());
+        Environment.Type left = ast.getLeft().getType();
+        Environment.Type right = ast.getRight().getType();
+
+        if (op.equals("&&") || op.equals("||")) {
+            requireAssignable(Environment.Type.BOOLEAN,left);
+            requireAssignable(Environment.Type.BOOLEAN,right);
+            ast.setType(Environment.Type.BOOLEAN);
+        }
+
+        else if (op.equals("<") || op.equals(">") ||op.equals("==") || op.equals("!=")) {
+            requireAssignable(left, right);
+            requireAssignable(Environment.Type.COMPARABLE, left);
+            requireAssignable(Environment.Type.COMPARABLE, right);
+            ast.setType(Environment.Type.BOOLEAN);
+        }
+
+        else if (op.equals("+")) {
+            if (left == Environment.Type.STRING || right == Environment.Type.STRING) {
+                ast.setType(Environment.Type.STRING);;
+            }
+            else if (left == Environment.Type.INTEGER ){
+                if (right == Environment.Type.INTEGER){
+                    ast.setType(Environment.Type.INTEGER);
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else if (left == Environment.Type.DECIMAL ){
+                if (right == Environment.Type.DECIMAL){
+                    ast.setType(Environment.Type.DECIMAL);
+                }
+                else{
+                    throw new RuntimeException("RHS is not the same type as LHS");
+                }
+            }
+            else{
+                throw new RuntimeException("Not supported '+' operation");
+            }
+        }
+
+        else if (op.equals("*") || op.equals("-") || op.equals("/")) {
+            if ((left == Environment.Type.INTEGER || left == Environment.Type.DECIMAL) && right == left) {
+                ast.setType(left);
+            }
+            else{
+                throw new RuntimeException("The LHS must be an Integer/Decimal, " +
+                        "and the RHS needs to be the same as the LHS.");
+            }
+        }
+
+        else if (op.equals("^")) {
+            if (left == Environment.Type.INTEGER || left == Environment.Type.DECIMAL) {
+                if (right == Environment.Type.INTEGER){
+                    ast.setType(Environment.Type.STRING);
+                }
+                else{
+                    throw new RuntimeException("The RHS must be an Integer");
+                }
+            }
+            else{
+                throw new RuntimeException("The LHS must be either an Integer or a Decimal");
+            }
+        }
+        return null;
     }
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getOffset().isPresent()) {
+            if (ast.getOffset().get().getType() != Environment.Type.INTEGER)
+            {
+                throw new RuntimeException("The contained expression is not a binary expression");
+            }
+            ast.setVariable(scope.lookupVariable(ast.getName()));
+        }
+        return null;
     }
 
     @Override
