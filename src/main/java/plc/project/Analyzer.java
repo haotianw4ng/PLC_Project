@@ -207,7 +207,14 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        throw new UnsupportedOperationException();  // TODO
+        if(ast.getOffset().isPresent()) {
+            if (ast.getOffset().get().getType() != Environment.Type.INTEGER)
+            {
+                throw new RuntimeException("The contained expression is not a binary expression");
+            }
+            ast.setVariable(scope.lookupVariable(ast.getName()));
+        }
+        return null;
     }
 
     @Override
