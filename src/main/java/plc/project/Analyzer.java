@@ -116,7 +116,31 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
-        throw new UnsupportedOperationException();  // TODO
+        try {
+            visit(ast.getValue().get());
+            Environment.Type type = Environment.getType(ast.getName());
+            Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+            ast.setVariable(var);
+        } catch (RuntimeException e) {
+
+            if (ast.getValue().isPresent()) {
+                Environment.Type type = ast.getValue().get().getType();
+
+                Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+                requireAssignable(ast.getVariable().getType(), type);
+                ast.setVariable(var);
+            } else {
+
+                Environment.Type type = Environment.getType(ast.getName());
+                if (type == null) throw new RuntimeException("yikes");
+                Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+                ast.setVariable(var);
+
+            }
+        }
+        //Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), Environment.getType(ast.getName()), false, Environment.NIL);
+        //throw new UnsupportedOperationException();  // TODO
+        return null;
     }
 
     @Override
@@ -141,6 +165,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.If ast) {
+
         throw new UnsupportedOperationException();  // TODO
     }
 
