@@ -77,7 +77,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         ast.setVariable(var);
         return null;
 
-        //throw new UnsupportedOperationException();  // TODO
+       // throw new UnsupportedOperationException();  // TODO
     }
 
     @Override
@@ -163,7 +163,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
             requireAssignable(ast.getReceiver().getType(),ast.getValue().getType());
         }
         catch (RuntimeException except) {
-            throw new RuntimeException("The value is not assignable to the receiver");
+            throw new RuntimeException(except);
         }
 
         return null;
@@ -171,6 +171,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.If ast) {
+        visit(ast.getCondition());
 
         if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
             throw new RuntimeException("The condition is not of type Boolean");
@@ -180,16 +181,14 @@ public final class Analyzer implements Ast.Visitor<Void> {
             throw new RuntimeException("The thenStatements list is empty");
         }
 
-        visit(ast.getCondition());
-
         try{
             scope = new Scope(scope);
             for (Ast.Statement stmt : ast.getThenStatements()){
                 visit(stmt);
             }
         }
-        finally{
-            scope = scope.getParent();
+        catch (RuntimeException except) {
+            throw new RuntimeException(except);
         }
 
         try{
@@ -198,8 +197,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 visit(stmt);
             }
         }
-        finally{
-            scope = scope.getParent();
+        catch (RuntimeException except) {
+            throw new RuntimeException(except);
         }
 
         return null;
@@ -207,21 +206,19 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        throw new UnsupportedOperationException();  // TODO
-    }
+        throw new RuntimeException("Switch");    }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
-        throw new UnsupportedOperationException();  // TODO
-    }
+        throw new RuntimeException("Switch");    }
 
     @Override
     public Void visit(Ast.Statement.While ast) {
+        visit(ast.getCondition());
+
         if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
             throw new RuntimeException("The condition is not of type Boolean");
         }
-
-        visit(ast.getCondition());
 
         try{
             scope = new Scope(scope);
@@ -371,7 +368,19 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
-        throw new UnsupportedOperationException();  // TODO
+        List<Ast.Expression> args = ast.getArguments();
+
+        ast.setFunction(scope.lookupFunction(ast.getName(),args.size()));
+        List<Environment.Type> argTypes = ast.getFunction().getParameterTypes();
+
+        for(int i = 0; i < args.size(); i++){
+            visit(ast.getArguments().get(i));
+            Environment.Type parameter_type = Environment.getType(argTypes.get(i).getName());
+            Environment.Type argument_type = args.get(i).getType();
+            requireAssignable(parameter_type,argument_type);
+        }
+
+        return null;
     }
 
     @Override
