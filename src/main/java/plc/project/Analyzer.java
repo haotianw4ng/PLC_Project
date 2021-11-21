@@ -50,7 +50,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Global ast) {
         if (ast.getValue().isPresent()) {
             visit(ast.getValue().get());
-
+            try {
+                requireAssignable(Environment.getType(ast.getTypeName()),ast.getValue().get().getType());
+            } catch (RuntimeException e) {
+                throw new RuntimeException("requireAssignable failed");
+            }
+/**
             // TODO Check if value is of subtype of global's type
             if (ast.getVariable().getType() == Environment.Type.ANY) {
             } else if (Environment.create(ast.getValue().get()).getType() == ast.getVariable().getType()){
@@ -63,7 +68,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
                 //if (Environment.create(ast.getValue().get()).getType() != ast.getVariable().getType()) {
                     throw new RuntimeException("variable mismatch");
                 //}
-            }
+            }**/
         }
 
        // scope.defineVariable(ast.getName(), ast.getMutable(), Environment.NIL);
@@ -116,7 +121,32 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Declaration ast) {
-        throw new RuntimeException("Declaration");
+        try {
+            visit(ast.getValue().get());
+            Environment.Type type = Environment.getType(ast.getName());
+            System.out.println(type);
+            Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+            ast.setVariable(var);
+        } catch (RuntimeException e) {
+
+            if (ast.getValue().isPresent()) {
+                Environment.Type type = ast.getValue().get().getType();
+
+                Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+                requireAssignable(ast.getVariable().getType(), type);
+                ast.setVariable(var);
+            } else {
+
+                Environment.Type type = Environment.getType(ast.getTypeName().get());
+                if (type == null) throw new RuntimeException("yikes");
+                Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), type, true, Environment.NIL);
+                ast.setVariable(var);
+
+            }
+        }
+        //Environment.Variable var = scope.defineVariable(ast.getName(), ast.getName(), Environment.getType(ast.getName()), false, Environment.NIL);
+        //throw new UnsupportedOperationException();  // TODO
+        return null;
     }
 
     @Override
