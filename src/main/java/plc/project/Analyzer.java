@@ -345,7 +345,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Environment.Type list_type = ast.getType();
+
+        for (Ast.Expression elem : ast.getValues()) {
+            //TODO: For a value to be assignable,
+            // it's type must be a subtype of the list's type as defined in Ast.Global.
+            try{
+                requireAssignable(list_type,elem.getType());
+            }
+            catch (RuntimeException except) {
+                throw new RuntimeException(except);
+            }
+        }
+
+        return null;
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
