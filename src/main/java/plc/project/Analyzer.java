@@ -151,19 +151,16 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Assignment ast) {
-        visit(ast.getValue());
-        visit(ast.getReceiver());
-        //System.out.println(ast.getReceiver().getType());
-        //System.out.println(ast.getValue().getType());
         if(ast.getReceiver().getClass() != Ast.Expression.Access.class){
             throw new RuntimeException("The receiver is not an access expression ");
         }
 
-        try{
+        try {
+            visit(ast.getValue());
+            visit(ast.getReceiver());
             requireAssignable(ast.getReceiver().getType(),ast.getValue().getType());
-        }
-        catch (RuntimeException except) {
-            throw new RuntimeException(except);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
         }
 
         return null;
@@ -359,8 +356,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
         if(ast.getOffset().isPresent()) {
             if (ast.getOffset().get().getType() != Environment.Type.INTEGER)
             {
-                throw new RuntimeException("The contained expression is not a binary expression");
+                throw new RuntimeException("The offset type is not an Integer");
             }
+            visit(ast.getOffset().get());
+            ast.setVariable(ast.getOffset().get().getType().getGlobal(ast.getName()));
+        }
+        else{
             ast.setVariable(scope.lookupVariable(ast.getName()));
         }
         return null;
@@ -377,7 +378,12 @@ public final class Analyzer implements Ast.Visitor<Void> {
             visit(ast.getArguments().get(i));
             Environment.Type parameter_type = Environment.getType(argTypes.get(i).getName());
             Environment.Type argument_type = args.get(i).getType();
-            requireAssignable(parameter_type,argument_type);
+
+            try{
+                requireAssignable(parameter_type,argument_type);
+            }catch (RuntimeException except) {
+                throw new RuntimeException(except);
+            }
         }
 
         return null;
