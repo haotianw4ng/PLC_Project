@@ -166,7 +166,37 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Statement.If ast) {
 
-        throw new UnsupportedOperationException();  // TODO
+        if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
+            throw new RuntimeException("The condition is not of type Boolean");
+        }
+
+        if (ast.getThenStatements().isEmpty()) {
+            throw new RuntimeException("The thenStatements list is empty");
+        }
+
+        visit(ast.getCondition());
+
+        try{
+            scope = new Scope(scope);
+            for (Ast.Statement stmt : ast.getThenStatements()){
+                visit(stmt);
+            }
+        }
+        finally{
+            scope = scope.getParent();
+        }
+
+        try{
+            scope = new Scope(scope);
+            for (Ast.Statement stmt : ast.getElseStatements()){
+                visit(stmt);
+            }
+        }
+        finally{
+            scope = scope.getParent();
+        }
+
+        return null;
     }
 
     @Override
@@ -181,15 +211,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
+        if (ast.getCondition().getType() != Environment.Type.BOOLEAN) {
+            throw new RuntimeException("The condition is not of type Boolean");
+        }
+
         visit(ast.getCondition());
+
         try{
-            requireAssignable(Environment.Type.BOOLEAN,ast.getCondition().getType());
             scope = new Scope(scope);
-            for (Ast.Statement statements : ast.getStatements()) {
-                visit(statements);
+            for (Ast.Statement stmt : ast.getStatements()) {
+                visit(stmt);
             }
-        }catch (RuntimeException except) {
-            throw new RuntimeException(except);
+        }
+        finally{
+            scope = scope.getParent();
         }
         return null;
     }
@@ -335,7 +370,20 @@ public final class Analyzer implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
-        throw new UnsupportedOperationException();  // TODO
+        Environment.Type list_type = ast.getType();
+
+        for (Ast.Expression elem : ast.getValues()) {
+            //TODO: For a value to be assignable,
+            // it's type must be a subtype of the list's type as defined in Ast.Global.
+            try{
+                requireAssignable(list_type,elem.getType());
+            }
+            catch (RuntimeException except) {
+                throw new RuntimeException(except);
+            }
+        }
+
+        return null;
     }
 
     public static void requireAssignable(Environment.Type target, Environment.Type type) {
