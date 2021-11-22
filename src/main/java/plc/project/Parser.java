@@ -114,13 +114,17 @@ public final class Parser {
         match("VAR");
         if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Not identifier", getIndex());
         name = tokens.get(-1).getLiteral();
+        String typeName = null;
+        if (!match(":")) throw new ParseException("Missing colon", getIndex());
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Missing type identifier", getIndex());
+        typeName = tokens.get(-1).getLiteral();
         if (match("=")) {
             Ast.Expression expr = parseExpression();
             //return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), expr.toString())));
             //return new Ast.Global(name, true, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
-            return new Ast.Global(name, true, Optional.of(expr));
+            return new Ast.Global(name, typeName,true, Optional.of(expr));
         } else {
-            return new Ast.Global(name, true, Optional.empty());
+            return new Ast.Global(name, typeName,true, Optional.empty());
         }
         //throw new UnsupportedOperationException(); //TODO
     }
@@ -134,10 +138,14 @@ public final class Parser {
         match("VAL");
         if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Not identifier", getIndex());
         name = tokens.get(-1).getLiteral();
+        String typeName = null;
+        if (!match(":")) throw new ParseException("Missing colon", getIndex());
+        if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Missing type identifier", getIndex());
+        typeName = tokens.get(-1).getLiteral();
         if (!match("=")) throw new ParseException("Missing initialization", getIndex());
         Ast.Expression expr = parseExpression();
         //return new Ast.Global(name, false, Optional.of(new Ast.Expression.Access(Optional.empty(), tokens.get(-1).getLiteral())));
-        return new Ast.Global(name, false, Optional.of(expr));
+        return new Ast.Global(name, typeName,false, Optional.of(expr));
        // throw new UnsupportedOperationException(); //TODO
     }
 
@@ -149,22 +157,31 @@ public final class Parser {
         String name = null;
         List<String> parameters = new ArrayList<>();
         List<Ast.Statement> statements = null;
+        List<String> parameterTypeNames = new ArrayList<>();
+        String returnTypeName = null;
+
         match("FUN");
         if (!match(Token.Type.IDENTIFIER)) throw new ParseException("Missing identifier", getIndex());
         name = tokens.get(-1).getLiteral();
         if (!match("(")) throw new ParseException("Missing opening parentheses", getIndex());
         if (match(Token.Type.IDENTIFIER)) {
             parameters.add(tokens.get(-1).getLiteral());
+            if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("Missing identifier", getIndex());
+            parameterTypeNames.add(tokens.get(-1).getLiteral());
             while (match(",")) {
                 match(Token.Type.IDENTIFIER);
                 parameters.add(tokens.get(-1).getLiteral());
+                if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("Missing identifier", getIndex());
+                parameterTypeNames.add(tokens.get(-1).getLiteral());
             }
         }
         if (!match(")")) throw new ParseException("Missing closing parentheses", getIndex());
+        if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("Missing type identifier", getIndex());
+        returnTypeName = tokens.get(-1).getLiteral();
         if (!match("DO")) throw new ParseException("Missing DO", getIndex());
         statements = parseBlock();
         if (!match("END")) throw new ParseException("Missing END", getIndex());
-        return new Ast.Function(name, parameters, statements);
+        return new Ast.Function(name, parameters, parameterTypeNames, Optional.of(returnTypeName),statements);
         //throw new UnsupportedOperationException(); //TODO
     }
 
@@ -236,18 +253,33 @@ public final class Parser {
     public Ast.Statement.Declaration parseDeclarationStatement() throws ParseException {
         if (match(Token.Type.IDENTIFIER)) {
             String identifier = tokens.get(-1).getLiteral();
+            String typeIdentifier = null;
+
+            if (match(":")) {
+                if (!match(Token.Type.IDENTIFIER)) {
+                    throw new ParseException("missing type identifier", getIndex());
+                }
+                typeIdentifier = tokens.get(-1).getLiteral();
+            }
+            
 
             if (match("=")) {
                 Ast.Expression val = parseExpression();
                 if (match(";")) {
-                    return new Ast.Statement.Declaration(identifier, Optional.of(val));
+                    if (typeIdentifier == null) {
+                        return new Ast.Statement.Declaration(identifier, Optional.empty(), Optional.of(val));
+                    } else {
+                        return new Ast.Statement.Declaration(identifier, Optional.of(typeIdentifier),Optional.of(val));
+                    }
+                   // return new Ast.Statement.Declaration(identifier, Optional.of(typeIdentifier),Optional.of(val));
                 }
                 else{
                     throw new ParseException("Missing ending semicolon", getIndex());
                 }
             } else {
                 if (match(";")) {
-                    return new Ast.Statement.Declaration(identifier, Optional.empty());
+                    assert typeIdentifier != null;
+                    return new Ast.Statement.Declaration(identifier, Optional.of(typeIdentifier), Optional.empty());
                 }
                 else{
                     throw new ParseException("Missing ending semicolon", getIndex());
@@ -256,6 +288,31 @@ public final class Parser {
         } else {
             throw new ParseException("Missing identifier", getIndex());
         }
+
+        /**
+         * if (match(Token.Type.IDENTIFIER)) {
+         *             String identifier = tokens.get(-1).getLiteral();
+         *
+         *             if (match("=")) {
+         *                 Ast.Expression val = parseExpression();
+         *                 if (match(";")) {
+         *                     return new Ast.Statement.Declaration(identifier, Optional.of(val));
+         *                 }
+         *                 else{
+         *                     throw new ParseException("Missing ending semicolon", getIndex());
+         *                 }
+         *             } else {
+         *                 if (match(";")) {
+         *                     return new Ast.Statement.Declaration(identifier, Optional.empty());
+         *                 }
+         *                 else{
+         *                     throw new ParseException("Missing ending semicolon", getIndex());
+         *                 }
+         *             }
+         *         } else {
+         *             throw new ParseException("Missing identifier", getIndex());
+         *         }
+         */
     }
 
     /**
