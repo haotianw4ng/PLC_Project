@@ -91,6 +91,11 @@ public final class Parser {
         match("LIST");
         if (!match(Token.Type.IDENTIFIER)) throw new ParseException("No identifier",getIndex());
         name = tokens.get(-1).getLiteral();
+        String listType = null;
+        if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("No type identifier", getIndex());
+        listType = tokens.get(-1).getLiteral();
+        //Token.Type listTypeName = tokens.get(-1).getType();
+
         if (!match("=")) throw new ParseException("No =", getIndex());
         if (!match("[")) throw new ParseException("No [", getIndex());
         Ast.Expression expr = parseExpression();
@@ -100,7 +105,9 @@ public final class Parser {
             exprList.add(expr);
         }
         if (!match("]")) throw new ParseException("Missing ]", getIndex());
-        return new Ast.Global(name, true, Optional.of(new Ast.Expression.PlcList(exprList)));
+        Ast.Expression.PlcList plcList = new Ast.Expression.PlcList(exprList);
+        plcList.setType(Environment.getType(listType));
+        return new Ast.Global(name, true, Optional.of(plcList));
 
         //throw new UnsupportedOperationException(); //TODO
     }
