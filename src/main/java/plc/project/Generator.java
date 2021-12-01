@@ -32,15 +32,18 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
-        return null;    }
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Global ast) {
-        return null;    }
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Function ast) {
-        return null;    }
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Statement.Expression ast) {
@@ -52,7 +55,7 @@ public final class Generator implements Ast.Visitor<Void> {
     public Void visit(Ast.Statement.Declaration ast) {
         print(ast.getVariable().getType().getJvmName(), " ", ast.getVariable().getJvmName());
 
-        if(ast.getValue().isPresent()){
+        if (ast.getValue().isPresent()) {
             print(" = ");
             print(ast.getValue().get());
         }
@@ -75,7 +78,8 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
-        return null;    }
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
@@ -84,7 +88,8 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.While ast) {
-        return null;    }
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Statement.Return ast) {
@@ -94,19 +99,13 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        if(ast.getType() == Environment.Type.CHARACTER || ast.getType() == Environment.Type.STRING)
-        {
+        if (ast.getType() == Environment.Type.CHARACTER || ast.getType() == Environment.Type.STRING) {
             print("\"", ast.getLiteral(), "\"");
-        }
-        else if(ast.getType() == Environment.Type.INTEGER)
-        {
+        } else if (ast.getType() == Environment.Type.INTEGER) {
             print(new BigInteger(ast.getLiteral().toString()));
-        }
-        else if(ast.getType() == Environment.Type.DECIMAL)
-        {
+        } else if (ast.getType() == Environment.Type.DECIMAL) {
             print(new BigDecimal(ast.getLiteral().toString()));
-        }
-        else {
+        } else {
             print(ast.getLiteral());
         }
 
@@ -128,15 +127,32 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        return null;    }
+        print(ast.getVariable().getJvmName());
+
+        // TODO: List case
+        return null;
+    }
 
     @Override
     public Void visit(Ast.Expression.Function ast) {
+        print(ast.getFunction().getJvmName(), "(");
+
+        for (int i = 0; i < ast.getArguments().size() ; i++) {
+            if (i != ast.getArguments().size() - 1) {
+                print(ast.getArguments().get(i), ", ");
+            }
+            else{
+                print(ast.getArguments().get(i));
+            }
+        }
+
+        print(")");
         return null;
     }
 
     @Override
     public Void visit(Ast.Expression.PlcList ast) {
-        return null;    }
+        return null;
+    }
 
 }
