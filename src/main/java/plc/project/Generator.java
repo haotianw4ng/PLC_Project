@@ -32,11 +32,44 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Source ast) {
+        print("public class Main {");
+        newline(0);
+        indent++;
+        if (!ast.getGlobals().isEmpty()) {
+            for (Ast.Global global : ast.getGlobals()){
+                visit(global);
+            }
+            newline(0);
+        }
+        newline(indent);
+        print("public static void main(String[] args) {");
+        indent++;
+        newline(indent);
+        print("System.exit(new Main().main());");
+        indent--;
+        newline(indent);
+        print("}");
+
+        for (Ast.Function function : ast.getFunctions()) {
+            newline(0);
+            newline(indent);
+            visit(function);
+        }
+        indent--;
+        newline(0);
+        newline(indent);
+        print("}");
         return null;
     }
 
     @Override
     public Void visit(Ast.Global ast) {
+        Environment.Variable var = ast.getVariable();
+        System.out.println(var.getValue());
+        System.out.println(ast.getValue());
+        System.out.println(ast.getTypeName());
+
+
         return null;
     }
 
@@ -124,11 +157,35 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Statement.Switch ast) {
+        print("switch (", ast.getCondition(), ")", " {");
+        indent++;
+
+        for (Ast.Statement.Case caseStmt : ast.getCases()) {
+            newline(indent);
+            visit(caseStmt);
+        }
+        indent--;
+        newline(indent);
+        print("}");
+
         return null;
     }
 
     @Override
     public Void visit(Ast.Statement.Case ast) {
+        if (ast.getValue().isPresent()) {
+            Ast.Expression.Literal lit = (Ast.Expression.Literal) ast.getValue().get();
+            String res = "case '" + lit.getLiteral() + "':";
+            print(res);
+        } else {
+            print("default:");
+        }
+        indent++;
+        for (Ast.Statement stmt : ast.getStatements()) {
+            newline(indent);
+            visit(stmt);
+        }
+        indent--;
         return null;
     }
 
@@ -159,8 +216,10 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Literal ast) {
-        if (ast.getType() == Environment.Type.CHARACTER || ast.getType() == Environment.Type.STRING) {
+        if (ast.getType() == Environment.Type.STRING) {
             print("\"", ast.getLiteral(), "\"");
+        } else if (ast.getType() == Environment.Type.CHARACTER) {
+            print("'", ast.getLiteral(),"'");
         } else if (ast.getType() == Environment.Type.INTEGER) {
             print(new BigInteger(ast.getLiteral().toString()));
         } else if (ast.getType() == Environment.Type.DECIMAL) {
