@@ -64,12 +64,33 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Global ast) {
-        Environment.Variable var = ast.getVariable();
-        System.out.println(var.getValue());
-        System.out.println(ast.getValue());
-        System.out.println(ast.getTypeName());
-
-
+        if (ast.getValue().isPresent() && ast.getValue().get() instanceof Ast.Expression.PlcList) {
+            print(Environment.getType(ast.getTypeName()).getJvmName(), "[] ", ast.getName(), " = {");
+            Ast.Expression.PlcList plc = (Ast.Expression.PlcList) ast.getValue().get();
+            if (plc.getValues().size() == 1) {
+                print(plc.getValues().get(0), "};");
+            } else {
+                for (int i = 0; i < plc.getValues().size(); ++i) {
+                    if (i == plc.getValues().size() - 1) {
+                        print(plc.getValues().get(i), "};");
+                    } else {
+                        print(plc.getValues().get(i), ", ");
+                    }
+                }
+            }
+        } else if (ast.getValue().get() instanceof Ast.Expression.PlcList) {
+            print(Environment.getType(ast.getTypeName()).getJvmName(), "[] ", ast.getName(), ";");
+        } else if (ast.getMutable()) {
+            print(Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
+            if (ast.getValue().isPresent()) {
+                print(" = ", ast.getValue().get());
+            }
+        } else {
+            print("final ", Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
+            if (ast.getValue().isPresent()) {
+                print(" = ", ast.getValue().get());
+            }
+        }
         return null;
     }
 
