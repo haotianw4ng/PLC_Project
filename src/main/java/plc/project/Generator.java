@@ -83,12 +83,12 @@ public final class Generator implements Ast.Visitor<Void> {
         } else if (ast.getMutable()) {
             print(Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
             if (ast.getValue().isPresent()) {
-                print(" = ", ast.getValue().get());
+                print(" = ", ast.getValue().get(), ";");
             }
         } else {
             print("final ", Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
             if (ast.getValue().isPresent()) {
-                print(" = ", ast.getValue().get());
+                print(" = ", ast.getValue().get(), ";");
             }
         }
         return null;
