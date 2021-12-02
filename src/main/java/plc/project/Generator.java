@@ -42,6 +42,29 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Function ast) {
+        print(ast.getFunction().getReturnType().getJvmName(), " ", ast.getName(), "(");
+
+        for (int i = 0; i < ast.getParameters().size(); i++) {
+            if (i != ast.getParameters().size() - 1) {
+                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+                print(", ");
+            }
+            else{
+                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+            }
+        }
+        print(") {");
+
+        indent++;
+        for (Ast.Statement statement : ast.getStatements()) {
+            newline(indent);
+            print(statement);
+        }
+
+        indent--;
+        newline(indent);
+        print("}");
+
         return null;
     }
 
