@@ -37,6 +37,7 @@ public final class Generator implements Ast.Visitor<Void> {
         indent++;
         if (!ast.getGlobals().isEmpty()) {
             for (Ast.Global global : ast.getGlobals()){
+                newline(indent);
                 visit(global);
             }
             newline(0);
@@ -78,18 +79,18 @@ public final class Generator implements Ast.Visitor<Void> {
                     }
                 }
             }
-        } else if (ast.getValue().get() instanceof Ast.Expression.PlcList) {
-            print(Environment.getType(ast.getTypeName()).getJvmName(), "[] ", ast.getName(), ";");
         } else if (ast.getMutable()) {
             print(Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
             if (ast.getValue().isPresent()) {
                 print(" = ", ast.getValue().get(), ";");
-            }
+            } else
+                print(";");
         } else {
             print("final ", Environment.getType(ast.getTypeName()).getJvmName(), " ", ast.getName());
             if (ast.getValue().isPresent()) {
                 print(" = ", ast.getValue().get(), ";");
-            }
+            } else
+                print(";");
         }
         return null;
     }
