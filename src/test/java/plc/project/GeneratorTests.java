@@ -59,6 +59,110 @@ public class GeneratorTests {
         );
     }
 
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testSourceMultipleFunctions(String test, Ast.Source ast, String expected) {
+        test(ast, expected);
+    }
+
+    private static Stream<Arguments> testSourceMultipleFunctions() {
+        return Stream.of(
+                Arguments.of("Hello, World!",
+                        // FUN main(): Integer DO
+                        //     print("Hello, World!");
+                        //     RETURN 0;
+                        // FUN p(): Integer DO
+                        //     print("Hello, World!");
+                        //     RETURN 0;
+                        // END
+                        new Ast.Source(
+                                Arrays.asList(),
+                                Arrays.asList((init(new Ast.Function("main", Arrays.asList(), Arrays.asList(), Optional.of("Integer"), Arrays.asList(
+                                        new Ast.Statement.Expression(init(new Ast.Expression.Function("print", Arrays.asList(
+                                                init(new Ast.Expression.Literal("Hello, World!"), ast -> ast.setType(Environment.Type.STRING))
+                                        )), ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL)))),
+                                        new Ast.Statement.Return(init(new Ast.Expression.Literal(BigInteger.ZERO), ast -> ast.setType(Environment.Type.INTEGER)))
+                                )), ast -> ast.setFunction(new Environment.Function("main", "main", Arrays.asList(), Environment.Type.INTEGER, args -> Environment.NIL)))),
+                                        (init(new Ast.Function("p", Arrays.asList(), Arrays.asList(), Optional.of("Integer"), Arrays.asList(
+                                                new Ast.Statement.Expression(init(new Ast.Expression.Function("print", Arrays.asList(
+                                                        init(new Ast.Expression.Literal("Hello, World!"), ast -> ast.setType(Environment.Type.STRING))
+                                                )), ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL)))),
+                                                new Ast.Statement.Return(init(new Ast.Expression.Literal(BigInteger.ZERO), ast -> ast.setType(Environment.Type.INTEGER)))
+                                        )), ast -> ast.setFunction(new Environment.Function("p", "p", Arrays.asList(), Environment.Type.INTEGER, args -> Environment.NIL)))))),
+
+                        String.join(System.lineSeparator(),
+                                "public class Main {",
+                                "",
+                                "    public static void main(String[] args) {",
+                                "        System.exit(new Main().main());",
+                                "    }",
+                                "",
+                                "    int main() {",
+                                "        System.out.println(\"Hello, World!\");",
+                                "        return 0;",
+                                "    }",
+                                "",
+                                "    int p() {",
+                                "        System.out.println(\"Hello, World!\");",
+                                "        return 0;",
+                                "    }",
+                                "",
+                                "}"
+                        )
+                )
+        );
+    }
+
+
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testSourceMultipleGlobals(String test, Ast.Source ast, String expected) {
+        test(ast, expected);
+    }
+
+    private static Stream<Arguments> testSourceMultipleGlobals() {
+        return Stream.of(
+                Arguments.of("MultipleGlobals",
+                        // VAR x: Integer;
+                        // VAR y: Integer = 10;
+                        // DEF main(): Integer DO
+                        //     RETURN x + y;
+                        // END
+                        new Ast.Source(
+                                Arrays.asList((init(new Ast.Global("x", "Integer", true, Optional.empty()), ast->ast.setVariable(new Environment.Variable("x","x",Environment.Type.INTEGER, true,Environment.NIL)))),
+                                        (init(new Ast.Global("y", "Integer", true, Optional.of(init(new Ast.Expression.Literal("10"), ast->ast.setType(Environment.Type.INTEGER)))), ast-> ast.setVariable(new Environment.Variable("y","y",Environment.Type.INTEGER, true, Environment.create("10")))))),
+                               // Arrays.asList(init(new Ast.Function("main", Arrays.asList(), Arrays.asList(), Optional.of("Integer"), Arrays.asList(
+                               //         new Ast.Statement.Return(init(new Ast.Expression.Binary("+", init(new Ast.Expression.Literal("x"), ast->ast.setType(Environment.Type.INTEGER)), init(new Ast.Expression.Literal("y"), ast->ast.setType(Environment.Type.INTEGER))), ast->ast.setType(Environment.Type.INTEGER)))
+                               // )), ast -> ast.setFunction(new Environment.Function("main", "main", Arrays.asList(), Environment.Type.INTEGER, args -> Environment.NIL))))
+                                Arrays.asList(init(new Ast.Function("main", Arrays.asList(), Arrays.asList(), Optional.of("Integer"), Arrays.asList(
+                                        new Ast.Statement.Expression(init(new Ast.Expression.Function("print", Arrays.asList(
+                                                init(new Ast.Expression.Literal("Hello, World!"), ast -> ast.setType(Environment.Type.STRING))
+                                        )), ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL)))),
+                                        new Ast.Statement.Return(init(new Ast.Expression.Literal(BigInteger.ZERO), ast -> ast.setType(Environment.Type.INTEGER)))
+                                )), ast -> ast.setFunction(new Environment.Function("main", "main", Arrays.asList(), Environment.Type.INTEGER, args -> Environment.NIL))))
+                        ),
+                        String.join(System.lineSeparator(),
+                                "public class Main {",
+                                "",
+                                "    int x;",
+                                "    int y = 10;",
+                                "",
+                                "    public static void main(String[] args) {",
+                                "        System.exit(new Main().main());",
+                                "    }",
+                                "",
+                                "    int main() {",
+                                "        System.out.println(\"Hello, World!\");",
+                                "        return 0;",
+                                "    }",
+                                "",
+                                "}"
+                        )
+                )
+        );
+    }
+
     @Test
     void testList() {
         // LIST list: Decimal = [1.0, 1.5, 2.0];
@@ -74,6 +178,46 @@ public class GeneratorTests {
 
         String expected = new String("double[] list = {1.0, 1.5, 2.0};");
         test(astList, expected);
+    }
+
+    @Test
+    void testMutableDeclaration() {
+        // VAR x: String
+        Ast.Global global = new Ast.Global("x", "String", true, Optional.empty());
+        String expected = new String("String x;");
+        Ast.Global astVar = init(global, ast -> ast.setVariable(new Environment.Variable("x", "x", Environment.Type.STRING, true, Environment.NIL)));
+        test(astVar, expected);
+    }
+
+    @Test
+    void testImmutableDeclaration() {
+        // VAL x: String
+        Ast.Global global = new Ast.Global("x", "String", false, Optional.empty());
+        String expected = new String("final String x;");
+        Ast.Global astVar = init(global, ast -> ast.setVariable(new Environment.Variable("x", "x", Environment.Type.STRING, false, Environment.NIL)));
+        test(astVar, expected);
+    }
+
+    @Test
+    void testMutableInitialization() {
+        // VAL x: String = "Hello!"
+        Ast.Expression.Literal lit = new Ast.Expression.Literal("Hello!");
+        lit.setType(Environment.Type.STRING);
+        Ast.Global global = new Ast.Global("x", "String", true, Optional.of(lit));
+        String expected = new String("String x = \"Hello!\";");
+        Ast.Global astVar = init(global, ast -> ast.setVariable(new Environment.Variable("x", "x", Environment.Type.STRING, true, Environment.create("Hello!"))));
+        test(astVar, expected);
+    }
+
+    @Test
+    void testImmutableInitialization() {
+        // VAR x: String = "Hello!"
+        Ast.Expression.Literal lit = new Ast.Expression.Literal("Hello!");
+        lit.setType(Environment.Type.STRING);
+        Ast.Global global = new Ast.Global("x", "String", false, Optional.of(lit));
+        String expected = new String("final String x = \"Hello!\";");
+        Ast.Global astVar = init(global, ast -> ast.setVariable(new Environment.Variable("x", "x", Environment.Type.STRING, false, Environment.create("Hello!"))));
+        test(astVar, expected);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -194,6 +338,84 @@ public class GeneratorTests {
                                 "    case 'y':",
                                 "        System.out.println(\"yes\");",
                                 "        letter = 'n';",
+                                "    default:",
+                                "        System.out.println(\"no\");",
+                                "}"
+                        )
+                )
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource
+    void testSwitchStatementMultipleCases(String test, Ast.Statement.Switch ast, String expected) {
+        test(ast, expected);
+    }
+
+    private static Stream<Arguments> testSwitchStatementMultipleCases() {
+        return Stream.of(
+                Arguments.of("Switch",
+                        // SWITCH letter
+                        //     CASE 'y':
+                        //         print("yes");
+                        //         letter = 'n';
+                        //     CASE 'x':
+                        //         print("yoikes");
+                        //         letter = 'y';
+                        //     DEFAULT
+                        //         print("no");
+                        // END
+                        new Ast.Statement.Switch(
+                                init(new Ast.Expression.Access(Optional.empty(), "letter"), ast -> ast.setVariable(new Environment.Variable("letter", "letter", Environment.Type.CHARACTER, true, Environment.create('y')))),
+                                Arrays.asList(
+                                        new Ast.Statement.Case(
+                                                Optional.of(init(new Ast.Expression.Literal('y'), ast -> ast.setType(Environment.Type.CHARACTER))),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(
+                                                                init(new Ast.Expression.Function("print", Arrays.asList(init(new Ast.Expression.Literal("yes"), ast -> ast.setType(Environment.Type.STRING)))),
+                                                                        ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL))
+                                                                )
+                                                        ),
+                                                        new Ast.Statement.Assignment(
+                                                                init(new Ast.Expression.Access(Optional.empty(), "letter"), ast -> ast.setVariable(new Environment.Variable("letter", "letter", Environment.Type.CHARACTER, true, Environment.create('y')))),
+                                                                init(new Ast.Expression.Literal('n'), ast -> ast.setType(Environment.Type.CHARACTER))
+                                                        )
+                                                )
+                                        ),
+                                        new Ast.Statement.Case(
+                                                Optional.of(init(new Ast.Expression.Literal('x'), ast -> ast.setType(Environment.Type.CHARACTER))),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(
+                                                                init(new Ast.Expression.Function("print", Arrays.asList(init(new Ast.Expression.Literal("yoikes"), ast -> ast.setType(Environment.Type.STRING)))),
+                                                                        ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL))
+                                                                )
+                                                        ),
+                                                        new Ast.Statement.Assignment(
+                                                                init(new Ast.Expression.Access(Optional.empty(), "letter"), ast -> ast.setVariable(new Environment.Variable("letter", "letter", Environment.Type.CHARACTER, true, Environment.create('y')))),
+                                                                init(new Ast.Expression.Literal('y'), ast -> ast.setType(Environment.Type.CHARACTER))
+                                                        )
+                                                )
+                                        ),
+                                        new Ast.Statement.Case(
+                                                Optional.empty(),
+                                                Arrays.asList(
+                                                        new Ast.Statement.Expression(
+                                                                init(new Ast.Expression.Function("print", Arrays.asList(init(new Ast.Expression.Literal("no"), ast -> ast.setType(Environment.Type.STRING)))),
+                                                                        ast -> ast.setFunction(new Environment.Function("print", "System.out.println", Arrays.asList(Environment.Type.ANY), Environment.Type.NIL, args -> Environment.NIL))
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        ),
+                        String.join(System.lineSeparator(),
+                                "switch (letter) {",
+                                "    case 'y':",
+                                "        System.out.println(\"yes\");",
+                                "        letter = 'n';",
+                                "    case 'x':",
+                                "        System.out.println(\"yoikes\");",
+                                "        letter = 'y';",
                                 "    default:",
                                 "        System.out.println(\"no\");",
                                 "}"
