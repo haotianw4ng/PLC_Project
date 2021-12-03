@@ -184,7 +184,7 @@ public final class Generator implements Ast.Visitor<Void> {
 
         for (Ast.Statement.Case caseStmt : ast.getCases()) {
             newline(indent);
-            visit(caseStmt);
+            print(caseStmt);
         }
         indent--;
         newline(indent);
@@ -205,7 +205,7 @@ public final class Generator implements Ast.Visitor<Void> {
         indent++;
         for (Ast.Statement stmt : ast.getStatements()) {
             newline(indent);
-            visit(stmt);
+            print(stmt);
         }
         indent--;
         return null;
