@@ -268,9 +268,13 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        print(ast.getVariable().getJvmName());
+        if (ast.getOffset().isPresent()){
+            print(ast.getVariable().getJvmName(),"[", ast.getOffset().get(), "]");
+        }
+        else{
+            print(ast.getVariable().getJvmName());
+        }
 
-        // TODO: List case
         return null;
     }
 
