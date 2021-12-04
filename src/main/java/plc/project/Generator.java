@@ -38,7 +38,7 @@ public final class Generator implements Ast.Visitor<Void> {
         if (!ast.getGlobals().isEmpty()) {
             for (Ast.Global global : ast.getGlobals()){
                 newline(indent);
-                visit(global);
+                print(global);
             }
             newline(0);
         }
@@ -54,7 +54,7 @@ public final class Generator implements Ast.Visitor<Void> {
         for (Ast.Function function : ast.getFunctions()) {
             newline(0);
             newline(indent);
-            visit(function);
+            print(function);
         }
         indent--;
         newline(0);
