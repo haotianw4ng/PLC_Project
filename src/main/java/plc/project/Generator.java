@@ -101,11 +101,11 @@ public final class Generator implements Ast.Visitor<Void> {
 
         for (int i = 0; i < ast.getParameters().size(); i++) {
             if (i != ast.getParameters().size() - 1) {
-                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+                print(ast.getFunction().getParameterTypes().get(i).getJvmName(), " ", ast.getParameters().get(i));
                 print(", ");
             }
             else{
-                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+                print(ast.getFunction().getParameterTypes().get(i).getJvmName(), " ", ast.getParameters().get(i));
             }
         }
         print(") {");
