@@ -246,7 +246,9 @@ public final class Generator implements Ast.Visitor<Void> {
             print(new BigInteger(ast.getLiteral().toString()));
         } else if (ast.getType() == Environment.Type.DECIMAL) {
             print(new BigDecimal(ast.getLiteral().toString()));
-        } else {
+        } else if (ast.getType() == Environment.Type.NIL) {
+            print("NIL");
+        }else {
             print(ast.getLiteral());
         }
 
