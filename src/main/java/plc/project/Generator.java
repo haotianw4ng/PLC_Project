@@ -38,7 +38,7 @@ public final class Generator implements Ast.Visitor<Void> {
         if (!ast.getGlobals().isEmpty()) {
             for (Ast.Global global : ast.getGlobals()){
                 newline(indent);
-                visit(global);
+                print(global);
             }
             newline(0);
         }
@@ -54,7 +54,7 @@ public final class Generator implements Ast.Visitor<Void> {
         for (Ast.Function function : ast.getFunctions()) {
             newline(0);
             newline(indent);
-            visit(function);
+            print(function);
         }
         indent--;
         newline(0);
@@ -101,11 +101,11 @@ public final class Generator implements Ast.Visitor<Void> {
 
         for (int i = 0; i < ast.getParameters().size(); i++) {
             if (i != ast.getParameters().size() - 1) {
-                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+                print(ast.getFunction().getParameterTypes().get(i).getJvmName(), " ", ast.getParameters().get(i));
                 print(", ");
             }
             else{
-                print(ast.getParameterTypeNames().get(i), " ", ast.getParameters().get(i));
+                print(ast.getFunction().getParameterTypes().get(i).getJvmName(), " ", ast.getParameters().get(i));
             }
         }
         print(") {");
@@ -246,7 +246,9 @@ public final class Generator implements Ast.Visitor<Void> {
             print(new BigInteger(ast.getLiteral().toString()));
         } else if (ast.getType() == Environment.Type.DECIMAL) {
             print(new BigDecimal(ast.getLiteral().toString()));
-        } else {
+        } else if (ast.getType() == Environment.Type.NIL) {
+            print("NIL");
+        }else {
             print(ast.getLiteral());
         }
 
@@ -268,9 +270,13 @@ public final class Generator implements Ast.Visitor<Void> {
 
     @Override
     public Void visit(Ast.Expression.Access ast) {
-        print(ast.getVariable().getJvmName());
+        if (ast.getOffset().isPresent()){
+            print(ast.getVariable().getJvmName(),"[", ast.getOffset().get(), "]");
+        }
+        else{
+            print(ast.getVariable().getJvmName());
+        }
 
-        // TODO: List case
         return null;
     }
 

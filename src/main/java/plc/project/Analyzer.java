@@ -278,7 +278,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
     @Override
     public Void visit(Ast.Expression.Literal ast) {
 
-        if (ast.getLiteral() instanceof Void)
+        if (ast.getLiteral() == Environment.NIL)
             ast.setType(Environment.Type.NIL);
         else if (ast.getLiteral() instanceof Boolean)
             ast.setType(Environment.Type.BOOLEAN);
@@ -371,7 +371,7 @@ public final class Analyzer implements Ast.Visitor<Void> {
         else if (op.equals("^")) {
             if (left == Environment.Type.INTEGER || left == Environment.Type.DECIMAL) {
                 if (right == Environment.Type.INTEGER){
-                    ast.setType(Environment.Type.STRING);
+                    ast.setType(left);
                 }
                 else{
                     throw new RuntimeException("The RHS must be an Integer");
@@ -404,6 +404,8 @@ public final class Analyzer implements Ast.Visitor<Void> {
     public Void visit(Ast.Expression.Function ast) {
         List<Ast.Expression> args = ast.getArguments();
 
+        System.out.println(args);
+        System.out.println(args.size());
         ast.setFunction(scope.lookupFunction(ast.getName(),args.size()));
         List<Environment.Type> argTypes = ast.getFunction().getParameterTypes();
 
