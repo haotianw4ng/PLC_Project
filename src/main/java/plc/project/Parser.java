@@ -106,8 +106,9 @@ public final class Parser {
         }
         if (!match("]")) throw new ParseException("Missing ]", getIndex());
         Ast.Expression.PlcList plcList = new Ast.Expression.PlcList(exprList);
-        plcList.setType(Environment.getType(listType));
-        return new Ast.Global(name, true, Optional.of(plcList));
+       // plcList.setType(Environment.getType(listType));
+        return new Ast.Global(name, listType, true, Optional.of(plcList));
+       // return new Ast.Global(name, true, Optional.of(plcList));
 
         //throw new UnsupportedOperationException(); //TODO
     }
@@ -183,12 +184,22 @@ public final class Parser {
             }
         }
         if (!match(")")) throw new ParseException("Missing closing parentheses", getIndex());
-        if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("Missing type identifier", getIndex());
-        returnTypeName = tokens.get(-1).getLiteral();
-        if (!match("DO")) throw new ParseException("Missing DO", getIndex());
-        statements = parseBlock();
-        if (!match("END")) throw new ParseException("Missing END", getIndex());
-        return new Ast.Function(name, parameters, parameterTypeNames, Optional.of(returnTypeName),statements);
+        //if (!match(":") || !match(Token.Type.IDENTIFIER)) throw new ParseException("Missing type identifier", getIndex());
+        if (match("DO")) {
+            statements = parseBlock();
+            if (!match("END")) throw new ParseException("Missing END", getIndex());
+            return new Ast.Function(name, parameters, parameterTypeNames, Optional.empty(),statements);
+        }
+        if (match(":")) {
+            if (match(Token.Type.IDENTIFIER)) {
+                returnTypeName = tokens.get(-1).getLiteral();
+                if (!match("DO")) throw new ParseException("Missing DO", getIndex());
+                statements = parseBlock();
+                if (!match("END")) throw new ParseException("Missing END", getIndex());
+                return new Ast.Function(name, parameters, parameterTypeNames, Optional.of(returnTypeName), statements);
+            }
+        }
+        throw new ParseException("error unexpected token", getIndex());
         //throw new UnsupportedOperationException(); //TODO
     }
 
