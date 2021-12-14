@@ -379,17 +379,13 @@ public final class Parser {
         }
 
         if (match("DEFAULT")) {
-            if (peek("END")) {
-                match("END");
-                return new Ast.Statement.Case(Optional.empty(), statement_list);
-                //throw new ParseException("No block", getIndex());
-            } else {
-                while (tokens.has(0) && !peek("END")) {
-                    statement_list.add(parseStatement());
-                }
-                match("END");
-                return new Ast.Statement.Case(Optional.empty(), statement_list);
+            while (tokens.has(0) && !peek("END")) {
+                statement_list.add(parseStatement());
             }
+
+            if (!match("END")) throw new ParseException("missing END", getIndex());
+            match("END");
+            return new Ast.Statement.Case(Optional.empty(), statement_list);
         }
 
         throw new ParseException("Errorrrr", getIndex());
