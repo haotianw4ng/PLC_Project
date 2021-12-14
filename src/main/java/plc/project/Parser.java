@@ -380,11 +380,14 @@ public final class Parser {
 
         if (match("DEFAULT")) {
             if (peek("END")) {
-                throw new ParseException("No block", getIndex());
+                match("END");
+                return new Ast.Statement.Case(Optional.empty(), statement_list);
+                //throw new ParseException("No block", getIndex());
             } else {
                 while (tokens.has(0) && !peek("END")) {
                     statement_list.add(parseStatement());
                 }
+                match("END");
                 return new Ast.Statement.Case(Optional.empty(), statement_list);
             }
         }
