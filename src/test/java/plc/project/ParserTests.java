@@ -76,6 +76,103 @@ final class ParserTests {
 
     @ParameterizedTest
     @MethodSource
+    void testSourceList(String test, List<Token> tokens, Ast.Source expected) {
+        test(tokens, expected, Parser::parseSource);
+    }
+
+    private static Stream<Arguments> testSourceList() {
+        Ast.Expression.Literal expr1 = new Ast.Expression.Literal(BigInteger.valueOf(5));
+        return Stream.of(
+                Arguments.of("Zero Statements",
+                        Arrays.asList(),
+                        new Ast.Source(Arrays.asList(), Arrays.asList())
+                ),
+                Arguments.of("Global - mutable",
+                        Arrays.asList(
+                                //LET name: Type = expr;
+                                new Token(Token.Type.IDENTIFIER, "LIST", 0),
+                                new Token(Token.Type.IDENTIFIER, "name", 5),
+                                new Token(Token.Type.OPERATOR, ":", 10),
+                                new Token(Token.Type.IDENTIFIER, "Type", 12),
+                                new Token(Token.Type.OPERATOR, "=", 17),
+                                new Token(Token.Type.OPERATOR, "[", 19),
+                                new Token(Token.Type.INTEGER, "5",20),
+                                new Token(Token.Type.IDENTIFIER, "]", 21),
+                                new Token(Token.Type.OPERATOR, ";", 22)
+                        ),
+                        new Ast.Source(
+                                Arrays.asList(new Ast.Global("name", "Type", true, Optional.of(new Ast.Expression.PlcList(Arrays.asList(expr1))))),
+                                Arrays.asList()
+                        )
+                )
+
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource
+    void testSourceLists(String test, List<Token> tokens, Ast.Source expected) {
+        test(tokens, expected, Parser::parseSource);
+    }
+
+    private static Stream<Arguments> testSourceLists() {
+        Ast.Expression.Literal expr1 = new Ast.Expression.Literal(BigInteger.valueOf(5));
+        Ast.Expression.Literal expr2 = new Ast.Expression.Literal(BigInteger.valueOf(6));
+        Ast.Expression.Literal expr3 = new Ast.Expression.Literal(BigInteger.valueOf(7));
+
+        return Stream.of(
+                Arguments.of("Zero Statements",
+                        Arrays.asList(),
+                        new Ast.Source(Arrays.asList(), Arrays.asList())
+                ),
+                Arguments.of("Global - mutable",
+                        Arrays.asList(
+                                //LET name: Type = expr;
+                                new Token(Token.Type.IDENTIFIER, "LIST", 0),
+                                new Token(Token.Type.IDENTIFIER, "name", 5),
+                                new Token(Token.Type.OPERATOR, ":", 10),
+                                new Token(Token.Type.IDENTIFIER, "Type", 12),
+                                new Token(Token.Type.OPERATOR, "=", 17),
+                                new Token(Token.Type.OPERATOR, "[", 19),
+                                new Token(Token.Type.INTEGER, "5",20),
+                                new Token(Token.Type.IDENTIFIER, "]", 21),
+                                new Token(Token.Type.OPERATOR, ";", 22)
+                        ),
+                        new Ast.Source(
+                                Arrays.asList(new Ast.Global("name", "Type", true, Optional.of(new Ast.Expression.PlcList(Arrays.asList(expr1))))),
+                                Arrays.asList()
+                        )
+                ),
+                Arguments.of("Global - mutable",
+                        Arrays.asList(
+                                //LET name: Type = expr;
+                                new Token(Token.Type.IDENTIFIER, "LIST", 0),
+                                new Token(Token.Type.IDENTIFIER, "name2", 5),
+                                new Token(Token.Type.OPERATOR, ":", 10),
+                                new Token(Token.Type.IDENTIFIER, "Type", 12),
+                                new Token(Token.Type.OPERATOR, "=", 17),
+                                new Token(Token.Type.OPERATOR, "[", 19),
+                                new Token(Token.Type.INTEGER, "6",20),
+                               // new Token(Token.Type.IDENTIFIER, "]", 21),
+                                //new Token(Token.Type.IDENTIFIER, ";", 22)
+                                new Token(Token.Type.IDENTIFIER, ",", 21),
+                                new Token(Token.Type.INTEGER, "7", 22),
+                                new Token(Token.Type.IDENTIFIER, "]", 23),
+                                new Token(Token.Type.OPERATOR, ";", 24)
+                        ),
+                        new Ast.Source(
+                                Arrays.asList(new Ast.Global("name2", "Type", true, Optional.of(new Ast.Expression.PlcList(Arrays.asList(expr2, expr3))))),
+                                Arrays.asList()
+                        )
+                )
+        );
+    }
+
+
+
+    @ParameterizedTest
+    @MethodSource
     void testExpressionStatement(String test, List<Token> tokens, Ast.Statement.Expression expected) {
         test(tokens, expected, Parser::parseStatement);
     }
